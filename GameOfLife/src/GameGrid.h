@@ -13,7 +13,7 @@ namespace gol
 	public:
 		GameGrid(const std::vector<unsigned char>& seedBuffer, int32_t width, int32_t height);
 
-		GameGrid(int32_t width, int32_t height);
+		GameGrid(int32_t width = 0, int32_t height = 0);
 		GameGrid(Size2 size);
 
 		void Update();

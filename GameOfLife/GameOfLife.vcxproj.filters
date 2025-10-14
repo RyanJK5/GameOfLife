@@ -116,5 +116,14 @@
     <ClInclude Include="src\GameWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\GameEnums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\KeyShortcut.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="resources\font\arial.ttf" />
   </ItemGroup>
 </Project>

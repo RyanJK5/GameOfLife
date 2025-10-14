@@ -39,12 +39,14 @@
     <Text Include="src\vendor\LICENSE.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\GameEnums.h" />
     <ClInclude Include="src\GameWindow.h" />
     <ClInclude Include="src\GraphicsHandler.h" />
     <ClInclude Include="src\GameGrid.h" />
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\GLException.h" />
     <ClInclude Include="src\Graphics2D.h" />
+    <ClInclude Include="src\KeyShortcut.h" />
     <ClInclude Include="src\Logging.h" />
     <ClInclude Include="src\ShaderManager.h" />
     <ClInclude Include="src\vendor\imconfig.h" />
@@ -56,6 +58,9 @@
     <ClInclude Include="src\vendor\imstb_rectpack.h" />
     <ClInclude Include="src\vendor\imstb_textedit.h" />
     <ClInclude Include="src\vendor\imstb_truetype.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="resources\font\arial.ttf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

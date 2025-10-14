@@ -7,27 +7,17 @@
 #include "GameWindow.h"
 #include "GameGrid.h"
 #include "GraphicsHandler.h"
+#include "GameEnums.h"
 
 namespace gol
 {
-	enum class GameState
-	{
-		Paint, Simulation
-	};
-
-	enum class DrawMode
-	{
-		None, Insert, Delete
-	};
-
-
 	class Game
 	{
 	public:
 		static constexpr uint32_t DefaultWindowWidth = 1920;
 		static constexpr uint32_t DefaultWindowHeight = 1080;
-		static constexpr uint32_t DefaultGridWidth = DefaultWindowWidth / 15;
-		static constexpr uint32_t DefaultGridHeight = DefaultWindowHeight / 15;
+		static constexpr uint32_t DefaultGridWidth = 64;
+		static constexpr uint32_t DefaultGridHeight = 64;
 	public:
 		Game();
 
@@ -40,40 +30,20 @@ namespace gol
 	private:
 		void InitImGUI();
 
-		void UpdateState();
+		void UpdateState(const UpdateInfo& info);
 
 		std::optional<Vec2> CursorGridPos();
 		void UpdateMouseState(Vec2 gridPos);
 
 		bool SimulationUpdate(double timeElapsedMs);
 		void PaintUpdate();
-
 	private:
-		struct InputState
-		{
-			DrawMode DrawMode;
-			bool EnterDown;
+		GameGrid m_Grid = { DefaultGridWidth, DefaultGridHeight };
+		GameGrid m_InitialGrid;
 
-			InputState()
-				: DrawMode(DrawMode::None)
-				, EnterDown(false)
-			{ }
-		};
-
-		struct SimulationSettings
-		{
-			double TickDelayMs;
-			GameState State;
-
-			SimulationSettings(GameState state, double tickDelayMs = 0)
-				: TickDelayMs(tickDelayMs)
-				, State(state)
-			{}
-		};
-	private:
-		GameGrid m_Grid = { 64, 64 };
-		SimulationSettings m_Settings = { GameState::Paint, 10 };
-		InputState m_Input;
+		GameState m_State = GameState::Paint;
+		DrawMode m_DrawMode = DrawMode::None;
+		double m_TickDelayMs = 10;
 
 		GameWindow m_Window;
 		GraphicsHandler m_Graphics;

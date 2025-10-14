@@ -18,24 +18,26 @@ gol::Game::Game()
     , m_Graphics(GraphicsHandler("shader/default.shader", DefaultWindowWidth, DefaultWindowHeight))
 { }
 
-void gol::Game::UpdateState()
+void gol::Game::UpdateState(const UpdateInfo& info)
 {
-    bool enterState = m_Window.GetKeyState(ImGuiKey_Enter);
-    if (enterState)
-        m_Input.EnterDown = true;
-    else if (m_Input.EnterDown && !enterState)
+    switch (info.Action)
     {
-        m_Input.EnterDown = false;
-        switch (m_Settings.State)
-        {
-        case GameState::Paint:
-            m_Settings.State = GameState::Simulation;
-            return;
-        case GameState::Simulation:
-            m_Grid = GameGrid(m_Grid.Size());
-            m_Settings.State = GameState::Paint;
-            break;
-        }
+    case GameAction::Start:
+        m_State = GameState::Simulation;
+        m_InitialGrid = m_Grid;
+        return;
+    case GameAction::Clear:
+        m_Grid = GameGrid(m_Grid.Size());
+        m_State = GameState::Paint;
+        return;
+    case GameAction::Reset:
+        m_Grid = m_InitialGrid;
+        m_State = GameState::Paint;
+        return;
+    case GameAction::Restart:
+        m_Grid = m_InitialGrid;
+        m_State = GameState::Simulation;
+        return;
     }
 }
 
@@ -59,13 +61,13 @@ void gol::Game::UpdateMouseState(Vec2 gridPos)
     bool mouseState = m_Window.GetMouseState(ImGuiMouseButton_Left);
     if (mouseState)
     {
-        if (m_Input.DrawMode == DrawMode::None)
-            m_Input.DrawMode = *m_Grid.Get(gridPos.X, gridPos.Y) ? DrawMode::Delete : DrawMode::Insert;
+        if (m_DrawMode == DrawMode::None)
+            m_DrawMode = *m_Grid.Get(gridPos.X, gridPos.Y) ? DrawMode::Delete : DrawMode::Insert;
 
-        m_Grid.Set(gridPos.X, gridPos.Y, m_Input.DrawMode == DrawMode::Insert);
+        m_Grid.Set(gridPos.X, gridPos.Y, m_DrawMode == DrawMode::Insert);
     }
     else
-        m_Input.DrawMode = DrawMode::None;
+        m_DrawMode = DrawMode::None;
 }
 
 static double GetTimeMs(const std::chrono::steady_clock& clock)
@@ -75,16 +77,10 @@ static double GetTimeMs(const std::chrono::steady_clock& clock)
 
 bool gol::Game::SimulationUpdate(double timeElapsedMs)
 {   
-    const bool success = timeElapsedMs >= m_Settings.TickDelayMs;
+    const bool success = timeElapsedMs >= m_TickDelayMs;
     if (success)
     {
-        if (m_Grid.Dead())
-        {
-            m_Settings.State = GameState::Paint;
-            m_Grid = GameGrid(DefaultGridWidth, DefaultGridHeight);
-        }
-        else
-            m_Grid.Update();
+        m_Grid.Update();
     }
 
     m_Graphics.ClearBackground(m_Window.WindowBounds(), m_Window.ViewportBounds(m_Grid.Size()));
@@ -116,12 +112,15 @@ void gol::Game::Begin()
 
     while (m_Window.Open())
     {
-        m_Window.FrameStart(m_Graphics.TextureID());
+        m_Window.BeginFrame();
+
         m_Window.UpdateViewport(m_Grid.Size());
         m_Graphics.RescaleFrameBuffer(m_Window.WindowBounds().Size());
-        UpdateState();
 
-        switch (m_Settings.State)
+        const UpdateInfo& info = m_Window.CreateGUI({ m_Graphics.TextureID(), m_State, m_Grid.Dead()});
+        UpdateState(info);
+
+        switch (m_State)
         {
         case GameState::Paint:
             PaintUpdate();
@@ -133,6 +132,6 @@ void gol::Game::Begin()
             break;
         }
 
-        m_Window.FrameEnd();
+        m_Window.EndFrame();
     }
 }

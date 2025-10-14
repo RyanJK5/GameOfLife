@@ -6,7 +6,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "KeyShortcut.h"
 #include "ShaderManager.h"
+#include "GameEnums.h"
 #include "Graphics2D.h"
 
 template <>
@@ -17,6 +19,18 @@ struct std::default_delete<GLFWwindow>
 
 namespace gol
 {
+	struct UpdateInfo
+	{
+		GameAction Action;
+	};
+
+	struct DrawInfo
+	{
+		uint32_t SimulationTextureID;
+		GameState State;
+		bool GridDead;
+	};
+
 	class GameWindow
 	{
 	public:
@@ -39,18 +53,32 @@ namespace gol
 
 		inline bool Open() const { return !glfwWindowShouldClose(m_Window.get()); }
 
-		void FrameStart(uint32_t textureID);
-		void FrameEnd() const;
+		void BeginFrame();
+		UpdateInfo CreateGUI(const DrawInfo& inInfo);
+		void EndFrame() const;
 
 		void UpdateViewport(Size2 gridSize) const;
 	private:
-		static constexpr int32_t GOLImGuiConfig = 
-			ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
+		static constexpr int32_t IOFlags = 
+			ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_DockingEnable;
+		static constexpr int32_t DockspaceFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 	private:
 		void InitImGUI();
+
+		void CreateDockspace();
+		void InitDockspace(uint32_t dockspaceID);
+
+		void DisplaySimulation(uint32_t textureID);
+		GameAction DisplaySimulationControl(const DrawInfo& info);
 	private:
 		std::unique_ptr<GLFWwindow> m_Window;
 		RectF m_WindowBounds;
+
+		bool m_Startup = true;
+
+		ImFont* m_Font;
+		
+		KeyShortcut<ImGuiKey_Enter> m_EnterShortcut;
 	};
 }
 #endif
