@@ -38,6 +38,12 @@ void gol::Game::UpdateState(const UpdateInfo& info)
         m_Grid = m_InitialGrid;
         m_State = GameState::Simulation;
         return;
+    case GameAction::Pause:
+        m_State = GameState::Paused;
+        return;
+    case GameAction::Resume:
+        m_State = GameState::Simulation;
+        return;
     }
 }
 
@@ -105,6 +111,12 @@ void gol::Game::PaintUpdate()
     }
 }
 
+void gol::Game::PauseUpdate()
+{
+    m_Graphics.ClearBackground(m_Window.WindowBounds(), m_Window.ViewportBounds(m_Grid.Size()));
+    m_Graphics.DrawGrid(m_Grid.GenerateGLBuffer());
+}
+
 void gol::Game::Begin()
 {
     const std::chrono::steady_clock clock{};
@@ -124,6 +136,9 @@ void gol::Game::Begin()
         {
         case GameState::Paint:
             PaintUpdate();
+            break;
+        case GameState::Paused:
+            PauseUpdate();
             break;
         case GameState::Simulation:
             double currentTimeMs = GetTimeMs(clock);

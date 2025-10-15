@@ -79,6 +79,7 @@ namespace gol
 		ImFont* m_Font;
 		
 		KeyShortcut<ImGuiKey_Enter> m_EnterShortcut;
+		KeyShortcut<ImGuiKey_Space> m_SpaceShortcut;
 	};
 }
 #endif

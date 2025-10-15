@@ -37,6 +37,7 @@ namespace gol
 
 		bool SimulationUpdate(double timeElapsedMs);
 		void PaintUpdate();
+		void PauseUpdate();
 	private:
 		GameGrid m_Grid = { DefaultGridWidth, DefaultGridHeight };
 		GameGrid m_InitialGrid;

@@ -168,6 +168,7 @@ gol::GameAction gol::GameWindow::DisplaySimulationControl(const DrawInfo& info)
     GameAction result = GameAction::None;
 
     bool enterShortcut = m_EnterShortcut.Update();
+    bool spaceShortcut = m_SpaceShortcut.Update();
 
     bool startEnabled = !info.GridDead && (info.State == GameState::Paint || info.State == GameState::Paused);
     disableBegin(startEnabled);
@@ -191,8 +192,22 @@ gol::GameAction gol::GameWindow::DisplaySimulationControl(const DrawInfo& info)
         result = GameAction::Reset;
     disableEnd(resetEnabled);
 
-    ImGui::End();
+    bool pauseEnabled = info.State == GameState::Simulation;
+    disableBegin(pauseEnabled);
+    ImGui::Button("Pause", { 100, 50 });
+    if (ImGui::IsItemActivated() || (pauseEnabled && spaceShortcut))
+        result = GameAction::Pause;
+    disableEnd(pauseEnabled);
 
+    bool resumeEnabled = info.State == GameState::Paused;
+    disableBegin(resumeEnabled);
+    ImGui::SameLine();
+    ImGui::Button("Resume", { 100, 50 });
+    if (ImGui::IsItemActivated() || (resumeEnabled && spaceShortcut))
+        result = GameAction::Resume;
+    disableEnd(resumeEnabled);
+
+    ImGui::End();
     return result;
 }
 
