@@ -21,8 +21,6 @@ namespace gol::StyleLoader
 		std::floating_point<decltype(T::w)> &&
 		std::default_initializable<T>;
 
-	static_assert(Vector4<ImVec4>);
-
 	enum class StyleColor
 	{
 		Transparent, Background, Contrast, Hover, Text
@@ -41,7 +39,7 @@ namespace gol::StyleLoader
 	struct YAMLError
 	{
 		YAMLErrorType Type;
-		std::string Description;
+		std::string_view Description;
 	};
 
 	class StyleLoaderException : public std::exception
@@ -49,7 +47,7 @@ namespace gol::StyleLoader
 	public:
 		StyleLoaderException() : std::exception() {}
 		StyleLoaderException(std::string_view str) : std::exception(std::move(str).data()) {}
-		StyleLoaderException(const YAMLError& err) : std::exception(err.Description.c_str()) {}
+		StyleLoaderException(const YAMLError& err) : std::exception(err.Description.data()) {}
 	};
 
 	template <Vector4 Vec>
@@ -97,7 +95,32 @@ namespace gol::StyleLoader
 		{ "Ctrl", ImGuiMod_Ctrl },
 		{ "Enter", ImGuiKey_Enter },
 		{ "Space", ImGuiKey_Space },
-		{ "R", ImGuiKey_R }
+		{ "A", ImGuiKey_A },
+		{ "B", ImGuiKey_B },
+		{ "C", ImGuiKey_C },
+		{ "D", ImGuiKey_D },
+		{ "E", ImGuiKey_E },
+		{ "F", ImGuiKey_F },
+		{ "G", ImGuiKey_G },
+		{ "H", ImGuiKey_H },
+		{ "I", ImGuiKey_I },
+		{ "J", ImGuiKey_J },
+		{ "K", ImGuiKey_K },
+		{ "L", ImGuiKey_L },
+		{ "M", ImGuiKey_M },
+		{ "N", ImGuiKey_N },
+		{ "O", ImGuiKey_O },
+		{ "P", ImGuiKey_P },
+		{ "Q", ImGuiKey_Q },
+		{ "R", ImGuiKey_R },
+		{ "S", ImGuiKey_S },
+		{ "T", ImGuiKey_T },
+		{ "U", ImGuiKey_U },
+		{ "V", ImGuiKey_V },
+		{ "W", ImGuiKey_W },
+		{ "X", ImGuiKey_X },
+		{ "Y", ImGuiKey_Y },
+		{ "Z", ImGuiKey_Z },
 	};
 
 	static const std::unordered_map<std::string_view, GameAction> ActionDefinitions = {
@@ -109,16 +132,15 @@ namespace gol::StyleLoader
 		{ "clear", GameAction::Clear }
 	};
 
+	template <typename T>
+	using StringConverter = std::function<std::optional<T>(std::string_view)>;
 
 	namespace {
 		template <typename T>
-		using ConversionFunction = std::function<std::optional<T>(std::string_view)>;
-
-		template <typename T>
-		ConversionFunction<T> GenerateConversion(
-			std::unordered_map<std::string_view, T> map)
+		StringConverter<T> MakeConverter(
+			const std::unordered_map<std::string_view, T>& map)
 		{
-			return ConversionFunction<T> { [map] (std::string_view str)
+			return StringConverter<T> { [map] (std::string_view str)
 			{
 				if (map.count(str) == 0)
 					return std::optional<T>(std::nullopt);
@@ -126,19 +148,27 @@ namespace gol::StyleLoader
 			} };
 		}
 
-		ConversionFunction<ImGuiKeyChord> GenerateChordConverter(
-			std::unordered_map<std::string_view, ImGuiKey> keyMap)
+		template <typename Chord, typename KeyStroke>
+		concept KeyChord = requires(Chord a, KeyStroke b)
 		{
-			return ConversionFunction<ImGuiKeyChord> { [keyMap](std::string_view str)
+			a | b;
+			a |= b;
+		};
+
+		template <typename KeyStroke, KeyChord<KeyStroke> Chord>
+		StringConverter<Chord> MakeChordConverter(
+			const std::unordered_map<std::string_view, KeyStroke>& keyMap)
+		{
+			return StringConverter<Chord> { [keyMap](std::string_view str)
 			{
-				std::optional<ImGuiKeyChord> chord;
+				std::optional<Chord> chord;
 				std::string token = "";
 				for (char c : str)
 				{
 					if (c == '+')
 					{
 						if (keyMap.count(token) == 0)
-							return std::optional<ImGuiKeyChord>(std::nullopt);
+							return std::optional<Chord>(std::nullopt);
 						
 						chord = !chord ? keyMap.at(token) : (*chord | keyMap.at(token));
 						token = "";
@@ -147,7 +177,7 @@ namespace gol::StyleLoader
 					token += c;
 				}
 				if (keyMap.count(token) == 0)
-					return std::optional<ImGuiKeyChord>(std::nullopt);
+					return std::optional<Chord>(std::nullopt);
 				chord = !chord ? keyMap.at(token) : (*chord | keyMap.at(token));
 				return chord;
 			}};
@@ -157,7 +187,7 @@ namespace gol::StyleLoader
 		std::expected<T, YAMLError> ReadKey(
 			int lineNum,
 			const std::string& line,
-			const ConversionFunction<T>& conversion)
+			const StringConverter<T>& conversion)
 		{
 			auto firstLetter = std::find_if(line.begin(), line.end(), [](char c) { return std::isalpha(c); });
 			auto seperator = std::find(firstLetter, line.end(), ':');
@@ -185,7 +215,7 @@ namespace gol::StyleLoader
 		template <typename T>
 		std::expected<std::vector<T>, YAMLError> ReadList(
 			int lineNum, const std::string& line, std::string_view values,
-			const ConversionFunction<T>& conversion, int numElements = -1)
+			const StringConverter<T>& conversion, int numElements = -1)
 		{
 			std::vector<T> result = {};
 			if (numElements >= 0)
@@ -248,8 +278,8 @@ namespace gol::StyleLoader
 			int lineNum,
 			const std::string& line,
 			const std::string::const_iterator& firstLetter,
-			const ConversionFunction<Key>& keyConversion,
-			const ConversionFunction<Value>& valueConversion,
+			const StringConverter<Key>& keyConversion,
+			const StringConverter<Value>& valueConversion,
 			int numElements = -1
 		)
 		{
@@ -264,7 +294,7 @@ namespace gol::StyleLoader
 			if (!valueList)
 				return std::unexpected(valueList.error());
 
-			return std::pair<Key, std::vector<Value>> {*key, * valueList};
+			return std::pair<Key, std::vector<Value>> {*key, *valueList};
 		}
 
 		template <Vector4 Vec>
@@ -273,8 +303,8 @@ namespace gol::StyleLoader
 			const std::string& line,
 			const std::string::const_iterator& firstLetter)
 		{
-			ConversionFunction<float> toF = [](auto str) { return std::make_optional<float>(std::atof(str.data())); };
-			ConversionFunction<StyleColor> toC = GenerateConversion(ColorDefinitions);
+			StringConverter<float> toF = [](auto str) { return std::make_optional<float>(std::atof(str.data())); };
+			StringConverter<StyleColor> toC = MakeConverter(ColorDefinitions);
 			auto pair = ReadListPair<StyleColor, float>(lineNum, line, firstLetter,
 				toC, toF, 4);
 			if (!pair)
@@ -287,12 +317,12 @@ namespace gol::StyleLoader
 			int lineNum,
 			const std::string& line,
 			const std::string::const_iterator& firstLetter,
-			const std::unordered_map<std::string_view, Key>& keyDefinitions,
-			const std::unordered_map<std::string_view, Value>& valueDefinitions)
+			const StringConverter<Key>& keyConverter,
+			const StringConverter<Value>& valueConverter)
 		{
 			auto seperator = std::find(firstLetter, line.end(), ':');
 
-			auto key = ReadKey<Key>(lineNum, line, GenerateConversion(keyDefinitions));
+			auto key = ReadKey<Key>(lineNum, line, keyConverter);
 			if (!key)
 				return std::unexpected(key.error());
 
@@ -303,7 +333,8 @@ namespace gol::StyleLoader
 					valueStr += *it;
 			}
 
-			if (valueDefinitions.count(valueStr) == 0)
+			auto value = valueConverter(valueStr);
+			if (!value)
 			{
 				return std::unexpected(YAMLError{
 					YAMLErrorType::ParseError,
@@ -311,7 +342,7 @@ namespace gol::StyleLoader
 					});
 			}
 
-			return std::pair<Key, Value> { *key, valueDefinitions.at(valueStr) };
+			return std::pair<Key, Value> { *key, *value };
 		}
 	}
 
@@ -365,7 +396,10 @@ namespace gol::StyleLoader
 			case SectionType::ImGUIStyle:
 			{
 				auto result = ReadPair<ImGuiCol_, StyleColor>(
-					lineNum, line, start, AttributeDefinitions, ColorDefinitions);
+					lineNum, line, start, 
+					MakeConverter(AttributeDefinitions), 
+					MakeConverter(ColorDefinitions)
+				);
 				if (!result)
 					return std::unexpected<YAMLError>(result.error());
 				output.AttributeColors[result->first] = result->second;
@@ -374,7 +408,9 @@ namespace gol::StyleLoader
 			{
 				auto result = ReadListPair<GameAction, ImGuiKeyChord>(
 					lineNum, line, start, 
-					GenerateConversion(ActionDefinitions), GenerateChordConverter(ShortcutDefinitions));
+					MakeConverter(ActionDefinitions), 
+					MakeChordConverter<ImGuiKey, ImGuiKeyChord>(ShortcutDefinitions)
+				);
 				if (!result)
 					return std::unexpected<YAMLError>(result.error());
 

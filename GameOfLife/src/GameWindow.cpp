@@ -82,7 +82,7 @@ void gol::GameWindow::CreateButtons(const std::unordered_map<GameAction, std::ve
         "Start",
         GameAction::Start,
         topRow,
-        [](auto info) { return !info.GridDead && (info.State == GameState::Paint || info.State == GameState::Paused); },
+        [](auto info) { return !info.GridDead && info.State == GameState::Paint; },
         shortcuts.at(GameAction::Start),
         true
     );
@@ -97,13 +97,13 @@ void gol::GameWindow::CreateButtons(const std::unordered_map<GameAction, std::ve
         "Reset",
         GameAction::Reset,
         topRow,
-        [](auto info) { return info.State == GameState::Simulation; },
+        [](auto info) { return info.State == GameState::Simulation || info.State == GameState::Paused; },
         shortcuts.at(GameAction::Reset)
     );
     m_Buttons.emplace_back(
         "Pause",
         GameAction::Pause,
-        bottomRow,
+        topRow,
         [](auto info) { return info.State == GameState::Simulation; },
         shortcuts.at(GameAction::Pause),
         true
@@ -111,9 +111,16 @@ void gol::GameWindow::CreateButtons(const std::unordered_map<GameAction, std::ve
     m_Buttons.emplace_back(
         "Resume",
         GameAction::Resume,
-        bottomRow,
+        topRow,
         [](auto info) { return info.State == GameState::Paused; },
         shortcuts.at(GameAction::Resume)
+    );
+    m_Buttons.emplace_back(
+        "Restart",
+        GameAction::Restart,
+        topRow,
+        [](auto info) { return info.State == GameState::Simulation || info.State == GameState::Paused; },
+        shortcuts.at(GameAction::Restart)
     );
 }
 

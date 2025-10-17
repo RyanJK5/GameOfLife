@@ -37,10 +37,10 @@ gol::GameAction gol::GameActionButton::Update(const DrawInfo& info)
 
 	GameAction result = [&]()
 	{
-		bool active = m_Shortcuts.size() > 0;
+		bool active = false;
 		for (auto& shortcut : m_Shortcuts)
 		{
-			active = shortcut.Active() && active;
+			active = shortcut.Active() || active;
 		}
 
 		if (ImGui::Button(m_Label.data(), {m_Size.Width, m_Size.Height}) || (m_Enabled(info) && active))
