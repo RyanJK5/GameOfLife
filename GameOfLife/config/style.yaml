@@ -1,0 +1,29 @@
+colors:
+    transparent: [0, 0, 0, 0]
+    background: [0.1, 0.1, 0.1, 1]
+    contrast: [0.16, 0.16, 0.16, 1]
+    hover: [1, 1, 1, 0.2]
+    text: [0.8, 0.8, 0.8, 1]
+
+imgui-style:
+    ImGuiCol_WindowBg: background
+    ImGuiCol_Border: contrast
+    
+    ImGuiCol_Text: text
+    
+    ImGuiCol_Button: contrast
+    ImGuiCol_ButtonHovered: hover
+    
+    ImGuiCol_Header: contrast
+    ImGuiCol_HeaderActive: contrast
+    
+    ImGuiCol_TitleBg: contrast
+    ImGuiCol_TitleBgActive: contrast
+    
+    ImGuiCol_Tab: transparent
+    ImGuiCol_TabSelectedOverline: transparent
+    ImGuiCol_TabDimmedSelected: transparent
+    ImGuiCol_TabHovered: transparent
+    ImGuiCol_TabUnfocused: transparent
+    ImGuiCol_TabDimmed: transparent
+    ImGuiCol_TabSelected: transparent

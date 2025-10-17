@@ -131,8 +131,14 @@
     <ClInclude Include="src\GameActionButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\StyleLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Font Include="resources\font\arial.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config\style.yaml" />
   </ItemGroup>
 </Project>

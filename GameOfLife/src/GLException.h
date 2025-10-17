@@ -10,7 +10,6 @@ namespace gol
 	{
 	public:
 		GLException() : std::exception() { }
-
 		GLException(std::string_view str) : std::exception(std::move(str).data()) {}
 	};
 }

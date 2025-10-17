@@ -106,7 +106,7 @@ std::optional<gol::ShaderManager::IDPair> gol::ShaderManager::ParseShader(const 
             type = std::nullopt;
     };
 
-    while (getline(stream, line))
+    while (std::getline(stream, line))
     {
         if (line.find("#shader") == std::string::npos)
         {

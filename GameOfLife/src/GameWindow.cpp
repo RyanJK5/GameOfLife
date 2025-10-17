@@ -2,6 +2,7 @@
 
 #include "Logging.h"
 #include "GameWindow.h"
+#include "StyleLoader.h"
 #include "GLException.h"
 
 #include "vendor/imgui.h"
@@ -47,6 +48,10 @@ gol::GameWindow::~GameWindow()
 
 void gol::GameWindow::InitImGUI()
 {
+    auto styleInfo = StyleLoader::ReadStyle(std::filesystem::path("config") / "style.yaml");
+    if (!styleInfo.has_value())
+        throw StyleLoader::StyleLoaderException(styleInfo.error());
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
@@ -57,36 +62,13 @@ void gol::GameWindow::InitImGUI()
     auto path = std::filesystem::path("resources") / "font" / "arial.ttf";
     m_Font = io.Fonts->AddFontFromFileTTF(path.string().c_str(), 30.0f);
 
-    ImVec4 transparent = ImVec4(0, 0, 0, 0);
-    ImVec4 background = ImVec4(0.1, 0.1, 0.1, 1);
-    ImVec4 contrast = ImVec4(0.16, 0.16, 0.16, 1);
-    ImVec4 hover = ImVec4(1, 1, 1, 0.2);
-    ImVec4 text = ImVec4(0.8, 0.8, 0.8, 1);
-
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowMenuButtonPosition = ImGuiDir_None;
 
-    style.Colors[ImGuiCol_WindowBg] = background;
-    style.Colors[ImGuiCol_Border] = contrast;
-
-    style.Colors[ImGuiCol_Text] = text;
-
-    style.Colors[ImGuiCol_Button] = contrast;
-    style.Colors[ImGuiCol_ButtonHovered] = hover;
-    
-    style.Colors[ImGuiCol_Header] = contrast;
-    style.Colors[ImGuiCol_HeaderActive] = contrast;
-
-    style.Colors[ImGuiCol_TitleBg] = contrast;
-    style.Colors[ImGuiCol_TitleBgActive] = contrast;
-
-    style.Colors[ImGuiCol_Tab] = transparent;
-    style.Colors[ImGuiCol_TabSelectedOverline] = transparent;
-    style.Colors[ImGuiCol_TabDimmedSelected] = transparent;
-    style.Colors[ImGuiCol_TabHovered] = transparent;
-    style.Colors[ImGuiCol_TabUnfocused] = transparent;
-    style.Colors[ImGuiCol_TabDimmed] = transparent;
-    style.Colors[ImGuiCol_TabSelected] = transparent;
+    for (auto&& pair : styleInfo->AttributeColors)
+    {
+        style.Colors[pair.first] = styleInfo->StyleColors[pair.second];
+    }
 
     ImGui_ImplGlfw_InitForOpenGL(m_Window.get(), true);
     ImGui_ImplOpenGL3_Init();
