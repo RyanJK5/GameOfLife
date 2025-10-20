@@ -6,7 +6,7 @@
 
 gol::ShaderManager::ShaderManager(const std::filesystem::path& shaderFilePath)
 {
-    GL_DEBUG(m_programID = glCreateProgram());
+    GL_DEBUG(m_ProgramID = glCreateProgram());
     try
     {
         std::optional<IDPair> shaderIds = ParseShader(shaderFilePath);
@@ -14,22 +14,22 @@ gol::ShaderManager::ShaderManager(const std::filesystem::path& shaderFilePath)
         if (!shaderIds)
             throw GLException(std::format("File '{}' could not be read", shaderFilePath.string()));
 
-        CreateShader(m_programID, shaderIds.value().first);
-        CreateShader(m_programID, shaderIds.value().second);
+        CreateShader(m_ProgramID, shaderIds.value().first);
+        CreateShader(m_ProgramID, shaderIds.value().second);
 
-        GL_DEBUG(glLinkProgram(m_programID));
-        GL_DEBUG(glValidateProgram(m_programID));
+        GL_DEBUG(glLinkProgram(m_ProgramID));
+        GL_DEBUG(glValidateProgram(m_ProgramID));
     }
     catch (GLException e)
     {
-        GL_DEBUG(glDeleteProgram(m_programID));
+        GL_DEBUG(glDeleteProgram(m_ProgramID));
         throw e;
     }
 }
 
 gol::ShaderManager::ShaderManager(ShaderManager&& other) noexcept
 {
-    m_programID = std::exchange(other.m_programID, 0);
+    m_ProgramID = std::exchange(other.m_ProgramID, 0);
 }
 
 gol::ShaderManager& gol::ShaderManager::operator=(ShaderManager&& other) noexcept
@@ -37,7 +37,7 @@ gol::ShaderManager& gol::ShaderManager::operator=(ShaderManager&& other) noexcep
     if (this != &other)
     {
         Destroy();
-        m_programID = std::exchange(other.m_programID, 0);
+        m_ProgramID = std::exchange(other.m_ProgramID, 0);
     }
     return *this;
 }
@@ -47,11 +47,11 @@ gol::ShaderManager::~ShaderManager()
     Destroy();
 }
 
-void gol::ShaderManager::Destroy() { GL_DEBUG(glDeleteProgram(m_programID)); }
+void gol::ShaderManager::Destroy() { GL_DEBUG(glDeleteProgram(m_ProgramID)); }
 
 uint32_t gol::ShaderManager::Program() const
 {
-	return m_programID;
+	return m_ProgramID;
 }
 
 uint32_t gol::ShaderManager::CompileShader(uint32_t type, std::string_view source) const
@@ -137,8 +137,27 @@ std::optional<gol::ShaderManager::IDPair> gol::ShaderManager::ParseShader(const 
     return std::make_pair(id1.value(), id2.value());
 }
 
+void gol::ShaderManager::AttachUniformMatrix4(std::string_view label, const glm::mat4& matrix)
+{
+    GL_DEBUG(glUniformMatrix4fv(UniformLocation(label), 1, GL_FALSE, &matrix[0][0]));
+}
+
+int32_t gol::ShaderManager::UniformLocation(std::string_view label)
+{
+    if (m_Uniforms.count(label) > 0)
+        return m_Uniforms[label];
+
+    GL_DEBUG(int location = glGetUniformLocation(m_ProgramID, label.data()));
+    if (location == -1)
+        throw GLException(std::format("Could not locate uniform '{}' in shader file", label));
+    
+    m_Uniforms[label] = location;
+    return location;
+}
+
 void gol::ShaderManager::CreateShader(uint32_t program, uint32_t shaderId)
 {
     GL_DEBUG(glAttachShader(program, shaderId));
     GL_DEBUG(glDeleteShader(shaderId));
 }
+

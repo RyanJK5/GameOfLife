@@ -34,7 +34,8 @@ namespace gol
 
 		Size2F GLCellDimensions() const;
 
-		std::vector<float> GenerateGLBuffer() const;
+		const std::vector<bool>& Data() const { return m_Grid; }
+		//std::vector<float> GenerateGLBuffer() const;
 	private:
 		void ParseSeed(const std::vector<unsigned char>& seedBuffer);
 

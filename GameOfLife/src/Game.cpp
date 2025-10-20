@@ -2,9 +2,9 @@
 #include <iostream>
 #include <algorithm>
 
-#include "vendor/imgui.h"
-#include "vendor/imgui_impl_glfw.h"
-#include "vendor/imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 #include "ShaderManager.h"
 #include "GLException.h"
@@ -83,28 +83,25 @@ bool gol::Game::SimulationUpdate(double timeElapsedMs)
         m_Grid.Update();
     }
 
-    m_Graphics.DrawGrid(m_Grid.GenerateGLBuffer());
+    m_Graphics.DrawGrid(m_Grid.Data(), m_Window.ViewportBounds(m_Grid.Size()), m_Grid.Size());
     return success;
 }
 
 void gol::Game::PaintUpdate()
 {
-    m_Graphics.DrawGrid(m_Grid.GenerateGLBuffer());
+    m_Graphics.DrawGrid(m_Grid.Data(), m_Window.ViewportBounds(m_Grid.Size()), m_Grid.Size());
 
     const std::optional<Vec2> gridPos = CursorGridPos();
     if (gridPos)
     {
         UpdateMouseState(*gridPos);
-        m_Graphics.DrawSelection({
-            m_Grid.GLCoords(gridPos->X, gridPos->Y),
-            m_Grid.GLCellDimensions()
-        });
+        m_Graphics.DrawSelection(*gridPos, m_Window.ViewportBounds(m_Grid.Size()), m_Grid.Size());
     }
 }
 
 void gol::Game::PauseUpdate()
 {
-    m_Graphics.DrawGrid(m_Grid.GenerateGLBuffer());
+    m_Graphics.DrawGrid(m_Grid.Data(), m_Window.ViewportBounds(m_Grid.Size()), m_Grid.Size());
 }
 
 void gol::Game::Begin()
@@ -112,6 +109,8 @@ void gol::Game::Begin()
     while (m_Window.Open())
     {
         m_Window.BeginFrame();
+
+        const float test = 0.5f;
 
         m_Window.UpdateViewport(m_Grid.Size());
         m_Graphics.RescaleFrameBuffer(m_Window.WindowBounds().Size());

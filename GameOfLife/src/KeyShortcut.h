@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 
-#include "vendor/imgui.h"
+#include "imgui.h"
 
 namespace gol
 {

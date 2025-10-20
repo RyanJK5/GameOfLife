@@ -5,10 +5,10 @@
 #include "GUILoader.h"
 #include "GLException.h"
 
-#include "vendor/imgui.h"
-#include "vendor/imgui_internal.h"
-#include "vendor/imgui_impl_glfw.h"
-#include "vendor/imgui_impl_opengl3.h"
+#include "imgui.h"
+#include <imgui_internal.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 gol::GameWindow::GameWindow(Size2 size)
     : GameWindow(size.Width, size.Height)
@@ -143,11 +143,13 @@ gol::Rect gol::GameWindow::ViewportBounds(Size2 gridSize) const
     {
         const int32_t newWidth = static_cast<int32_t>(heightRatio * gridSize.Width);
         const int32_t newX = (window.Width - newWidth) / 2;
-        return Rect { window.X + newX, window.Y, newWidth, window.Height};
+        return window;
+        //return Rect { window.X + newX, window.Y, newWidth, window.Height};
     }
     const int32_t newHeight = static_cast<int32_t>(widthRatio * gridSize.Height);
     const int32_t newY = (window.Height - newHeight) / 2;
-    return Rect { window.X, window.Y + newY, window.Width, newHeight };
+    return WindowBounds();
+    //return Rect { window.X, window.Y + newY, window.Width, newHeight };
 }
 
 gol::Vec2F gol::GameWindow::CursorPos() const

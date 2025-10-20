@@ -1,7 +1,7 @@
 #include "GameActionButton.h"
 
-#include "vendor/imgui.h"
-#include "vendor/imgui_internal.h"
+#include "imgui.h"
+#include <imgui_internal.h>
 
 gol::GameActionButton::GameActionButton(
 	std::string_view label,

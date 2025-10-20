@@ -3,11 +3,13 @@
 
 layout(location = 0) in vec4 position;
 
+uniform mat4 u_MVP;
+
 out vec2 TexCoords;
 
 void main() 
 {
-    gl_Position = position;
+    gl_Position = u_MVP * position;
 }
 
 #shader fragment

@@ -1,8 +1,11 @@
-#pragma once
+#ifndef __ShaderManager_h__
+#define __ShaderManager_h__
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
+#include <unordered_map>
 #include <string>
 #include <optional>
 #include <filesystem>
@@ -28,6 +31,8 @@ namespace gol
         ~ShaderManager();
 
         uint32_t Program() const;
+
+        void AttachUniformMatrix4(std::string_view label, const glm::mat4& matrix);
     private:
         uint32_t CompileShader(uint32_t type, std::string_view source) const;
 
@@ -35,8 +40,13 @@ namespace gol
 
         void CreateShader(uint32_t program, uint32_t shaderId);
 
+        int32_t UniformLocation(std::string_view label);
+
         void Destroy();
     private:
-        unsigned int m_programID;
+        uint32_t m_ProgramID;
+        std::unordered_map<std::string_view, int32_t> m_Uniforms;
     };
 }
+
+#endif

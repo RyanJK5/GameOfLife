@@ -122,34 +122,9 @@ int8_t gol::GameGrid::CountNeighbors(int32_t x, int32_t y)
 	return count;
 }
 
+#if 0
 std::vector<float> gol::GameGrid::GenerateGLBuffer() const
 {
-	std::vector<float> result;
-	result.reserve(m_Width * m_Height);
-
-	auto [glW, glH] = GLCellDimensions();
-	for (int32_t x = 0; x < m_Width; x++)
-	{
-		for (int32_t y = 0; y < m_Height; y++)
-		{
-			if (!m_Grid[y * m_Width + x])
-				continue;
-
-			auto [glX, glY] = GLCoords(x, y);
-			
-			result.emplace_back(glX);
-			result.emplace_back(glY);
-			
-			result.emplace_back(glX);
-			result.emplace_back(glY - glH);
-
-			result.emplace_back(glX + glW);
-			result.emplace_back(glY - glH);
-
-			result.emplace_back(glX + glW);
-			result.emplace_back(glY);
-		}
-	}
-
-	return result;
+	
 }
+#endif

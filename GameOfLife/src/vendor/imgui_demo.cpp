@@ -10756,7 +10756,7 @@ void ShowExampleAppDocuments(bool* p_open)
 // [SECTION] Example App: Assets Browser / ShowExampleAppAssetsBrowser()
 //-----------------------------------------------------------------------------
 
-//#include "imgui_internal.h" // NavMoveRequestTryWrapping()
+//#include <imgui_internal.h> // NavMoveRequestTryWrapping()
 
 struct ExampleAsset
 {

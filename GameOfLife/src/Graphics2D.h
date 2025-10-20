@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <concepts>
 
-#include "vendor/imgui.h"
+#include "imgui.h"
 
 namespace gol
 {
@@ -37,8 +37,13 @@ namespace gol
 		T Width;
 		T Height;
 
-		inline GenericVec<T> Pos() { return { X, Y }; }
-		inline GenericSize<T> Size() { return { Width, Height }; }
+		inline GenericVec<T> Pos() const { return { X, Y }; }
+		inline GenericSize<T> Size() const { return { Width, Height }; }
+
+		inline GenericVec<T> UpperLeft() const { return { X, Y }; }
+		inline GenericVec<T> UpperRight() const { return { X + Width, Y }; }
+		inline GenericVec<T> LowerLeft() const { return { X, Y + Height }; }
+		inline GenericVec<T> LowerRight() const { return { X + Width, Y + Height }; }
 
 		GenericRect(T x, T y, T width, T height) : X(x), Y(y), Width(width), Height(height) { }
 		GenericRect(GenericVec<T> pos, GenericSize<T> size) : X(pos.X), Y(pos.Y), Width(size.Width), Height(size.Height) {}

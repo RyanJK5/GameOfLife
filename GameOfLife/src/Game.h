@@ -17,7 +17,7 @@ namespace gol
 		static constexpr uint32_t DefaultWindowWidth = 1920;
 		static constexpr uint32_t DefaultWindowHeight = 1080;
 		static constexpr uint32_t DefaultGridWidth = 64;
-		static constexpr uint32_t DefaultGridHeight = 64;
+		static constexpr uint32_t DefaultGridHeight = 36;
 	public:
 		Game();
 
