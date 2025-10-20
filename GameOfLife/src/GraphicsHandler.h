@@ -9,6 +9,13 @@
 
 namespace gol
 {
+	struct RenderInfo
+	{
+		Rect ViewportBounds;
+		Size2 GridSize;
+		float Zoom;
+	};
+
 	class GraphicsHandler
 	{
 	public:
@@ -24,8 +31,8 @@ namespace gol
 
 		void RescaleFrameBuffer(Size2 windowSize);
 
-		void DrawGrid(const std::vector<bool>& grid, const Rect& viewportBounds, Size2 gridSize) const;
-		void DrawSelection(Vec2 gridPos, const Rect& viewportBounds, Size2 gridSize);
+		void DrawGrid(const std::vector<bool>& grid, const RenderInfo& info) const;
+		void DrawSelection(Vec2 gridPos, const RenderInfo& info);
 		void ClearBackground(const Rect& windowBounds, const Rect& viewportBounds) const;
 
 		void BindFrameBuffer() const;
@@ -33,10 +40,9 @@ namespace gol
 
 		inline uint32_t TextureID() const { return m_Texture; }
 	private:
-		std::vector<float> GenerateGLBuffer(
-			const std::vector<bool>& grid, const Rect& viewportBounds, Size2 gridSize) const;
+		std::vector<float> GenerateGLBuffer(const std::vector<bool>& grid, const RenderInfo& info) const;
 
-		RectF GridToScreenBounds(Vec2 pos, const Rect& viewportBounds, Size2 gridSize) const;
+		RectF GridToScreenBounds(Vec2 pos, const RenderInfo& info) const;
 
 		void Move(GraphicsHandler&& other) noexcept;
 		void Destroy();

@@ -125,17 +125,16 @@ void gol::GraphicsHandler::ClearBackground(const Rect& windowBounds, const Rect&
     UnbindFrameBuffer();
 }
 
-std::vector<float> gol::GraphicsHandler::GenerateGLBuffer(
-    const std::vector<bool>& grid, const Rect& viewportBounds, Size2 gridSize) const
+std::vector<float> gol::GraphicsHandler::GenerateGLBuffer(const std::vector<bool>& grid, const RenderInfo& info) const
 {
-    float width = static_cast<float>(viewportBounds.Width) / gridSize.Width;
-    float height = static_cast<float>(viewportBounds.Height) / gridSize.Height;
+    float width = static_cast<float>(info.ViewportBounds.Width) / info.GridSize.Width;
+    float height = static_cast<float>(info.ViewportBounds.Height) / info.GridSize.Height;
     std::vector<float> result;
-    for (int32_t x = 0; x < gridSize.Width; x++)
+    for (int32_t x = 0; x < info.GridSize.Width; x++)
     {
-        for (int32_t y = 0; y < gridSize.Height; y++)
+        for (int32_t y = 0; y < info.GridSize.Height; y++)
         {
-            if (!grid[y * gridSize.Width + x])
+            if (!grid[y * info.GridSize.Width + x])
                 continue;
 
             float xCoord = width * x;
@@ -158,11 +157,10 @@ std::vector<float> gol::GraphicsHandler::GenerateGLBuffer(
     return result;
 }
 
-void gol::GraphicsHandler::DrawGrid(
-    const std::vector<bool>& grid, const Rect& viewportBounds, Size2 gridSize) const
+void gol::GraphicsHandler::DrawGrid(const std::vector<bool>& grid, const RenderInfo& info) const
 {
     BindFrameBuffer();
-    auto positions = GenerateGLBuffer(grid, viewportBounds, gridSize);
+    auto positions = GenerateGLBuffer(grid, info);
 
     GL_DEBUG(glBindBuffer(GL_ARRAY_BUFFER, m_GridBuffer));
     GL_DEBUG(glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), positions.data(), GL_DYNAMIC_DRAW));
@@ -176,11 +174,10 @@ void gol::GraphicsHandler::DrawGrid(
     UnbindFrameBuffer();
 }
 
-gol::RectF gol::GraphicsHandler::GridToScreenBounds(
-    Vec2 gridPos, const Rect& viewportBounds, Size2 gridSize) const
+gol::RectF gol::GraphicsHandler::GridToScreenBounds(Vec2 gridPos, const RenderInfo& info) const
 {
-    float width = static_cast<float>(viewportBounds.Width) / gridSize.Width;
-    float height = static_cast<float>(viewportBounds.Height) / gridSize.Height;
+    float width = static_cast<float>(info.ViewportBounds.Width) / info.GridSize.Width;
+    float height = static_cast<float>(info.ViewportBounds.Height) / info.GridSize.Height;
     return {
           static_cast<float>(gridPos.X * width), 
           static_cast<float>(gridPos.Y * height),
@@ -189,18 +186,17 @@ gol::RectF gol::GraphicsHandler::GridToScreenBounds(
     };
 }
 
-void gol::GraphicsHandler::DrawSelection(Vec2 gridPos, const Rect& viewportBounds, Size2 gridSize)
+void gol::GraphicsHandler::DrawSelection(Vec2 gridPos, const RenderInfo& info)
 {
     BindFrameBuffer();
 
-    float windowWidth = viewportBounds.Width;
-    float windowHeight = viewportBounds.Height;
-    
-    auto matrix = glm::ortho(0.f, windowWidth, windowHeight, 0.f, -1.f, 1.f);
+    float windowWidth = info.ViewportBounds.Width;
+    float windowHeight = info.ViewportBounds.Height;
+
+    auto matrix = glm::ortho(0.f, windowWidth / info.Zoom, windowHeight / info.Zoom, 0.f, -1.f, 1.f);
     m_Shader.AttachUniformMatrix4("u_MVP", matrix);
 
-    std::println("Elloa");
-    auto rect = GridToScreenBounds(gridPos, viewportBounds, gridSize);
+    auto rect = GridToScreenBounds(gridPos, info);
     float positions[] = 
     { 
         rect.UpperLeft().X, rect.UpperLeft().Y,

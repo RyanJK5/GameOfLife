@@ -35,9 +35,9 @@ namespace gol
 		std::optional<Vec2> CursorGridPos();
 		void UpdateMouseState(Vec2 gridPos);
 
-		bool SimulationUpdate(double timeElapsedMs);
-		void PaintUpdate();
-		void PauseUpdate();
+		bool SimulationUpdate(double timeElapsedMs, const RenderInfo& info);
+		void PaintUpdate(const RenderInfo& info);
+		void PauseUpdate(const RenderInfo& info);
 	private:
 		GameGrid m_Grid = { DefaultGridWidth, DefaultGridHeight };
 		GameGrid m_InitialGrid;

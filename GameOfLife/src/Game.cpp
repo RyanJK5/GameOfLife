@@ -75,7 +75,7 @@ void gol::Game::UpdateMouseState(Vec2 gridPos)
         m_DrawMode = DrawMode::None;
 }
 
-bool gol::Game::SimulationUpdate(double timeElapsedMs)
+bool gol::Game::SimulationUpdate(double timeElapsedMs, const RenderInfo& info)
 {   
     const bool success = timeElapsedMs >= m_TickDelayMs;
     if (success)
@@ -83,25 +83,25 @@ bool gol::Game::SimulationUpdate(double timeElapsedMs)
         m_Grid.Update();
     }
 
-    m_Graphics.DrawGrid(m_Grid.Data(), m_Window.ViewportBounds(m_Grid.Size()), m_Grid.Size());
+    m_Graphics.DrawGrid(m_Grid.Data(), info);
     return success;
 }
 
-void gol::Game::PaintUpdate()
+void gol::Game::PaintUpdate(const RenderInfo& info)
 {
-    m_Graphics.DrawGrid(m_Grid.Data(), m_Window.ViewportBounds(m_Grid.Size()), m_Grid.Size());
+    m_Graphics.DrawGrid(m_Grid.Data(), info);
 
     const std::optional<Vec2> gridPos = CursorGridPos();
     if (gridPos)
     {
         UpdateMouseState(*gridPos);
-        m_Graphics.DrawSelection(*gridPos, m_Window.ViewportBounds(m_Grid.Size()), m_Grid.Size());
+        m_Graphics.DrawSelection(*gridPos, info);
     }
 }
 
-void gol::Game::PauseUpdate()
+void gol::Game::PauseUpdate(const RenderInfo& info)
 {
-    m_Graphics.DrawGrid(m_Grid.Data(), m_Window.ViewportBounds(m_Grid.Size()), m_Grid.Size());
+    m_Graphics.DrawGrid(m_Grid.Data(), info);
 }
 
 void gol::Game::Begin()
@@ -116,20 +116,21 @@ void gol::Game::Begin()
         m_Graphics.RescaleFrameBuffer(m_Window.WindowBounds().Size());
         m_Graphics.ClearBackground(m_Window.WindowBounds(), m_Window.ViewportBounds(m_Grid.Size()));
 
-        const UpdateInfo& info = m_Window.CreateGUI({ m_Graphics.TextureID(), m_State, m_Grid.Dead()});
-        UpdateState(info);
+        const UpdateInfo& updateInfo = m_Window.CreateGUI({ m_Graphics.TextureID(), m_State, m_Grid.Dead()});
+        UpdateState(updateInfo);
 
+        RenderInfo renderInfo = { m_Window.ViewportBounds(m_Grid.Size()), m_Grid.Size(), 1.f };
         switch (m_State)
         {
         case GameState::Paint:
-            PaintUpdate();
+            PaintUpdate(renderInfo);
             break;
         case GameState::Paused:
-            PauseUpdate();
+            PauseUpdate(renderInfo);
             break;
         case GameState::Simulation:
             double currentTimeMs = glfwGetTime() * 1000;
-            if (SimulationUpdate(currentTimeMs))
+            if (SimulationUpdate(currentTimeMs, renderInfo))
                 glfwSetTime(0);
             break;
         }
