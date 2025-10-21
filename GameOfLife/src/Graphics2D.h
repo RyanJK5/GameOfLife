@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <concepts>
+#include <glm/glm.hpp>
 
 #include "imgui.h"
 
@@ -59,6 +60,7 @@ namespace gol
 	{
 		Vec2F() : GenericVec() { }
 		Vec2F(ImVec2 vec) : GenericVec(vec.x, vec.y) { }
+		Vec2F(glm::vec2 vec) : GenericVec(vec.x, vec.y) { }
 		Vec2F(float x, float y) : GenericVec(x, y) { }
 	};
 

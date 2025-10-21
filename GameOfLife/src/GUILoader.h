@@ -41,7 +41,7 @@ namespace gol::StyleLoader
 	struct YAMLError
 	{
 		YAMLErrorType Type;
-		std::string_view Description;
+		std::string Description;
 	};
 
 	class StyleLoaderException : public std::exception

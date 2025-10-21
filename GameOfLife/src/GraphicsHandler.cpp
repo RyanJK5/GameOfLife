@@ -3,8 +3,6 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "GraphicsHandler.h"
 #include "Logging.h"
@@ -198,7 +196,8 @@ void gol::GraphicsHandler::DrawSelection(Vec2 gridPos, const GraphicsHandlerArgs
     float windowWidth = args.ViewportBounds.Width;
     float windowHeight = args.ViewportBounds.Height;
 
-    auto matrix = glm::ortho(0.f, windowWidth / args.Zoom, windowHeight / args.Zoom, 0.f, -1.f, 1.f);
+    Camera.Center = { args.ViewportBounds.Width / 2.f, args.ViewportBounds.Height / 2.f };
+    auto matrix = Camera.OrthographicProjection(args.ViewportBounds.Size());
     m_Shader.AttachUniformMatrix4("u_MVP", matrix);
 
     auto rect = GridToScreenBounds(gridPos, args);

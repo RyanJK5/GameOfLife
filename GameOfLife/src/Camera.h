@@ -11,11 +11,11 @@ namespace gol
 	class Camera
 	{
 	public:
-		float Zoom = 0.0f;
-		Vec2F Center = {};
+		float Zoom = 1.f;
+		glm::vec2 Center = {};
 	public:
 		Camera() = default;
-		Camera(float zoom, Vec2F center) : Zoom(zoom), Center(center) { }
+		Camera(float zoom, glm::vec2 center) : Zoom(zoom), Center(center) { }
 	public:
 		glm::mat4 OrthographicProjection(Size2 viewSize) const;
 	};

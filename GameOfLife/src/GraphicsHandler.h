@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "Graphics2D.h"
 #include "ShaderManager.h"
+#include "Logging.h"
 
 namespace gol
 {
@@ -19,6 +20,8 @@ namespace gol
 
 	class GraphicsHandler
 	{
+	public:
+		Camera Camera;
 	public:
 		GraphicsHandler(const std::filesystem::path& shaderFilePath, int32_t windowWidth, int32_t windowHeight);
 
@@ -39,6 +42,8 @@ namespace gol
 		void BindFrameBuffer() const;
 		void UnbindFrameBuffer() const;
 
+		inline void ZoomBy(float zoom) { Camera.Zoom *= 1.f + zoom; }
+
 		inline uint32_t TextureID() const { return m_Texture; }
 	private:
 		std::vector<float> GenerateGLBuffer(const std::vector<bool>& grid, const GraphicsHandlerArgs& info) const;
@@ -49,7 +54,6 @@ namespace gol
 		void Destroy();
 	private:
 		ShaderManager m_Shader;
-		Camera m_Camera;
 		
 		uint32_t m_GridBuffer;
 		uint32_t m_SelectionBuffer;
