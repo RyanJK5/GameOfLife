@@ -11,6 +11,8 @@
 #include <exception>
 #include <concepts>
 
+#include "GameEnums.h"
+
 namespace gol::StyleLoader
 {
 	template <typename T>
@@ -347,8 +349,7 @@ namespace gol::StyleLoader
 	}
 
 	template <Vector4 Vec>
-	std::expected<StyleInfo<Vec>, YAMLError> LoadStyle(
-		const std::filesystem::path& styleInfoPath)
+	std::expected<StyleInfo<Vec>, YAMLError> LoadYAML(const std::filesystem::path& styleInfoPath)
 	{
 		std::ifstream input(styleInfoPath);
 		if (!input.is_open())

@@ -7,7 +7,7 @@ gol::GameActionButton::GameActionButton(
 	std::string_view label,
 	GameAction actionReturn,
 	Size2F size,
-	const std::function<bool(const DrawInfo&)>& enabledCheck,
+	const std::function<bool(GameState)>& enabledCheck,
 	const std::vector<ImGuiKeyChord>& shortcuts,
 	bool lineBreak
 )
@@ -24,9 +24,9 @@ gol::GameActionButton::GameActionButton(
 	}
 }
 
-gol::GameAction gol::GameActionButton::Update(const DrawInfo& info)
+gol::GameAction gol::GameActionButton::Update(GameState state)
 {
-	if (!m_Enabled(info))
+	if (!m_Enabled(state))
 	{
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
@@ -43,12 +43,12 @@ gol::GameAction gol::GameActionButton::Update(const DrawInfo& info)
 			active = shortcut.Active() || active;
 		}
 
-		if (ImGui::Button(m_Label.data(), {m_Size.Width, m_Size.Height}) || (m_Enabled(info) && active))
+		if (ImGui::Button(m_Label.data(), {m_Size.Width, m_Size.Height}) || (m_Enabled(state) && active))
 			return m_Return;
 		return GameAction::None;
 	}();
 
-	if (!m_Enabled(info))
+	if (!m_Enabled(state))
 	{
 		ImGui::PopItemFlag();
 		ImGui::PopStyleVar();

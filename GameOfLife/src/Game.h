@@ -1,25 +1,50 @@
 #ifndef __Game_h__
 #define __Game_h__
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 #include <optional>
 #include <memory>
 
-#include "GameWindow.h"
-#include "GameGrid.h"
-#include "GraphicsHandler.h"
 #include "GameEnums.h"
+#include "SimulationEditor.h"
+#include "SimulationControl.h"
+
+template <>
+struct std::default_delete<GLFWwindow>
+{
+	void operator() (GLFWwindow*) { glfwTerminate(); }
+};
 
 namespace gol
 {
+	class OpenGLWindow
+	{
+	public:
+		OpenGLWindow(int32_t width, int32_t height);
+		~OpenGLWindow();
+
+		Rect Bounds;
+		inline GLFWwindow* Get() const { return Underlying; }
+	private:
+		GLFWwindow* Underlying;
+	};
+
 	class Game
 	{
 	public:
-		static constexpr uint32_t DefaultWindowWidth = 1920;
-		static constexpr uint32_t DefaultWindowHeight = 1080;
-		static constexpr uint32_t DefaultGridWidth = 64;
-		static constexpr uint32_t DefaultGridHeight = 36;
+		static constexpr int32_t DefaultWindowWidth = 1920;
+		static constexpr int32_t DefaultWindowHeight = 1080;
+		static constexpr int32_t DefaultGridWidth = 64;
+		static constexpr int32_t DefaultGridHeight = 36;
+
+		static constexpr int32_t IOFlags =
+			ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_DockingEnable;
+		static constexpr int32_t DockspaceFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 	public:
 		Game();
+		~Game();
 
 		Game(const Game& other) = delete;
 		Game(const Game&& other) = delete;
@@ -27,27 +52,29 @@ namespace gol
 		Game& operator=(const Game&& other) = delete;
 	
 		void Begin();
+
+		static inline bool GetKeyState(ImGuiKey keyCode) { return ImGui::IsKeyDown(keyCode); }
+		static inline bool GetMouseState(int32_t mouseButtonCode) { return ImGui::IsMouseDown(mouseButtonCode); }
+		static inline Vec2F CursorPos() { return ImGui::GetMousePos(); }
+
+		inline bool Open() const { return !glfwWindowShouldClose(m_Window.Get()); }
 	private:
-		void InitImGUI();
+		void BeginFrame();
+		void EndFrame();
 
-		void UpdateState(const UpdateInfo& info);
+		void InitImGUI(const std::filesystem::path& stylePath);
+		void CreateDockspace();
+		void InitDockspace(uint32_t dockspaceID, ImVec2 windowSize);
 
-		std::optional<Vec2> CursorGridPos();
-		void UpdateMouseState(Vec2 gridPos);
-
-		bool SimulationUpdate(double timeElapsedMs, const RenderInfo& info);
-		void PaintUpdate(const RenderInfo& info);
-		void PauseUpdate(const RenderInfo& info);
 	private:
-		GameGrid m_Grid = { DefaultGridWidth, DefaultGridHeight };
-		GameGrid m_InitialGrid;
-
 		GameState m_State = GameState::Paint;
-		DrawMode m_DrawMode = DrawMode::None;
-		double m_TickDelayMs = 10;
 
-		GameWindow m_Window;
-		GraphicsHandler m_Graphics;
+		OpenGLWindow m_Window;
+		SimulationEditor m_Editor;
+		SimulationControl m_Control;
+
+		bool m_Startup = true;
+		ImFont* m_Font;
 	};
 }
 

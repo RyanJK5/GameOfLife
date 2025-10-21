@@ -5,7 +5,7 @@ namespace gol
 {
 	enum class GameState
 	{
-		Paint, Simulation, Paused
+		Paint, Simulation, Paused, Empty
 	};
 
 	enum class GameAction

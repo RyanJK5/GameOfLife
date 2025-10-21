@@ -3,138 +3,174 @@
 #include <algorithm>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
 #include "ShaderManager.h"
 #include "GLException.h"
 #include "Logging.h"
+#include "GUILoader.h"
 #include "Game.h"
 #include "Graphics2D.h"
 
+gol::OpenGLWindow::OpenGLWindow(int32_t width, int32_t height)
+    : Bounds(0, 0, width, height)
+{
+    if (!glfwInit())
+        throw GLException("Failed to initialize glfw");    
+
+    Underlying = glfwCreateWindow(width, height, "Conway's Game of Life", NULL, NULL);
+
+    if (!Underlying)
+        throw GLException("Failed to create window");
+
+    glfwMakeContextCurrent(Underlying);
+    GL_DEBUG(glLineWidth(4));
+    GL_DEBUG(glfwSwapInterval(1));
+
+    if (glewInit() != GLEW_OK)
+        throw GLException("Failed to initialize glew");
+}
+
+gol::OpenGLWindow::~OpenGLWindow() 
+{
+    glfwTerminate();
+}
+
 gol::Game::Game()
     : m_Window(DefaultWindowWidth, DefaultWindowHeight)
-    , m_Graphics(GraphicsHandler(std::filesystem::path("resources") / "shader" / "default.shader", DefaultWindowWidth, DefaultWindowHeight))
-{ }
-
-void gol::Game::UpdateState(const UpdateInfo& info)
+    , m_Editor({DefaultWindowWidth, DefaultWindowHeight}, {DefaultGridWidth, DefaultGridHeight})
+    , m_Control(std::filesystem::path("config") / "style.yaml")
 {
-    switch (info.Action)
-    {
-    case GameAction::Start:
-        m_State = GameState::Simulation;
-        m_InitialGrid = m_Grid;
-        return;
-    case GameAction::Clear:
-        m_Grid = GameGrid(m_Grid.Size());
-        m_State = GameState::Paint;
-        return;
-    case GameAction::Reset:
-        m_Grid = m_InitialGrid;
-        m_State = GameState::Paint;
-        return;
-    case GameAction::Restart:
-        m_Grid = m_InitialGrid;
-        m_State = GameState::Simulation;
-        return;
-    case GameAction::Pause:
-        m_State = GameState::Paused;
-        return;
-    case GameAction::Resume:
-        m_State = GameState::Simulation;
-        return;
-    }
+    InitImGUI(std::filesystem::path("config") / "style.yaml");
 }
 
-std::optional<gol::Vec2> gol::Game::CursorGridPos()
+gol::Game::~Game()
 {
-    Rect view = m_Window.ViewportBounds(m_Grid.Size());
-    Vec2F cursor = m_Window.CursorPos();
-    if (!view.InBounds(cursor.X, cursor.Y))
-        return std::nullopt;
-
-    int32_t xPos = static_cast<int32_t>((cursor.X - view.X) / (float(view.Width) / m_Grid.Width()));
-    int32_t yPos = static_cast<int32_t>((cursor.Y - view.Y) / (float(view.Height) / m_Grid.Height()));
-    if (xPos >= m_Grid.Width() || yPos >= m_Grid.Height())
-        return std::nullopt;
-    
-    return Vec2(xPos, yPos);
-}
-
-void gol::Game::UpdateMouseState(Vec2 gridPos)
-{
-    bool mouseState = m_Window.GetMouseState(ImGuiMouseButton_Left);
-    if (mouseState)
-    {
-        if (m_DrawMode == DrawMode::None)
-            m_DrawMode = *m_Grid.Get(gridPos.X, gridPos.Y) ? DrawMode::Delete : DrawMode::Insert;
-
-        m_Grid.Set(gridPos.X, gridPos.Y, m_DrawMode == DrawMode::Insert);
-    }
-    else
-        m_DrawMode = DrawMode::None;
-}
-
-bool gol::Game::SimulationUpdate(double timeElapsedMs, const RenderInfo& info)
-{   
-    const bool success = timeElapsedMs >= m_TickDelayMs;
-    if (success)
-    {
-        m_Grid.Update();
-    }
-
-    m_Graphics.DrawGrid(m_Grid.Data(), info);
-    return success;
-}
-
-void gol::Game::PaintUpdate(const RenderInfo& info)
-{
-    m_Graphics.DrawGrid(m_Grid.Data(), info);
-
-    const std::optional<Vec2> gridPos = CursorGridPos();
-    if (gridPos)
-    {
-        UpdateMouseState(*gridPos);
-        m_Graphics.DrawSelection(*gridPos, info);
-    }
-}
-
-void gol::Game::PauseUpdate(const RenderInfo& info)
-{
-    m_Graphics.DrawGrid(m_Grid.Data(), info);
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 }
 
 void gol::Game::Begin()
 {
-    while (m_Window.Open())
+    while (Open())
     {
-        m_Window.BeginFrame();
+        BeginFrame();
 
-        const float test = 0.5f;
+        auto action = m_Control.Update(m_State);
+        m_State = m_Editor.Update({ m_State, action });
+        ImGui::Begin("Presets");
+        ImGui::End();
 
-        m_Window.UpdateViewport(m_Grid.Size());
-        m_Graphics.RescaleFrameBuffer(m_Window.WindowBounds().Size());
-        m_Graphics.ClearBackground(m_Window.WindowBounds(), m_Window.ViewportBounds(m_Grid.Size()));
-
-        const UpdateInfo& updateInfo = m_Window.CreateGUI({ m_Graphics.TextureID(), m_State, m_Grid.Dead()});
-        UpdateState(updateInfo);
-
-        RenderInfo renderInfo = { m_Window.ViewportBounds(m_Grid.Size()), m_Grid.Size(), 1.f };
-        switch (m_State)
-        {
-        case GameState::Paint:
-            PaintUpdate(renderInfo);
-            break;
-        case GameState::Paused:
-            PauseUpdate(renderInfo);
-            break;
-        case GameState::Simulation:
-            double currentTimeMs = glfwGetTime() * 1000;
-            if (SimulationUpdate(currentTimeMs, renderInfo))
-                glfwSetTime(0);
-            break;
-        }
-
-        m_Window.EndFrame();
+        EndFrame();
     }
+}
+
+void gol::Game::InitImGUI(const std::filesystem::path& stylePath)
+{
+    auto styleInfo = StyleLoader::LoadYAML<ImVec4>(std::filesystem::path("config") / "style.yaml");
+    if (!styleInfo)
+        throw StyleLoader::StyleLoaderException(styleInfo.error());
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= IOFlags;
+    io.ConfigDebugHighlightIdConflicts = true;
+
+    auto path = std::filesystem::path("resources") / "font" / "arial.ttf";
+    m_Font = io.Fonts->AddFontFromFileTTF(path.string().c_str(), 30.0f);
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowMenuButtonPosition = ImGuiDir_None;
+
+    for (auto&& pair : styleInfo->AttributeColors)
+    {
+        style.Colors[pair.first] = styleInfo->StyleColors[pair.second];
+    }
+
+    ImGui_ImplGlfw_InitForOpenGL(m_Window.Get(), true);
+    ImGui_ImplOpenGL3_Init();
+}
+
+void gol::Game::BeginFrame()
+{
+    GL_DEBUG(glfwPollEvents());
+    GL_DEBUG(glClear(GL_COLOR_BUFFER_BIT));
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::PushFont(m_Font, 30.0f);
+    CreateDockspace();
+}
+
+void gol::Game::EndFrame()
+{
+    ImGui::PopFont();
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    GLFWwindow* backup_current_context = glfwGetCurrentContext();
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+    glfwMakeContextCurrent(backup_current_context);
+
+    GL_DEBUG(glfwSwapBuffers(m_Window.Get()));
+}
+
+void gol::Game::CreateDockspace()
+{
+    ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Once);
+
+    int32_t windowWidth, windowHeight;
+    GL_DEBUG(glfwGetFramebufferSize(m_Window.Get(), &windowWidth, &windowHeight));
+    const ImVec2 windowSize = { static_cast<float>(windowWidth), static_cast<float>(windowHeight) };
+    ImGui::SetNextWindowSize(windowSize);
+
+    ImGui::Begin("DockSpace", nullptr, DockspaceFlags | ImGuiWindowFlags_NoTitleBar);
+    ImGuiID dockspaceID = ImGui::GetID("DockSpace");
+    ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+    if (m_Startup)
+    {
+        InitDockspace(dockspaceID, windowSize);
+        m_Startup = false;
+    }
+
+    ImGui::End();
+}
+
+void gol::Game::InitDockspace(uint32_t dockspaceID, ImVec2 windowSize)
+{
+    ImGui::DockBuilderRemoveNode(dockspaceID);
+    ImGui::DockBuilderAddNode(
+        dockspaceID,
+        ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_DockSpace
+    );
+    ImGui::DockBuilderSetNodeSize(dockspaceID, windowSize);
+
+    ImGuiID leftID{}, rightID{};
+    ImGui::DockBuilderSplitNode(
+        dockspaceID,
+        ImGuiDir_Left,
+        0.25f,
+        &leftID,
+        &rightID
+    );
+    auto downID = ImGui::DockBuilderSplitNode(
+        rightID,
+        ImGuiDir_Down,
+        0.25f,
+        nullptr,
+        &rightID
+    );
+
+    ImGui::DockBuilderDockWindow("Presets", downID);
+    ImGui::DockBuilderDockWindow("Simulation", rightID);
+    ImGui::DockBuilderDockWindow("Simulation Control", leftID);
+    ImGui::DockBuilderFinish(dockspaceID);
 }

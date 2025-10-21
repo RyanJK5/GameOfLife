@@ -11,32 +11,27 @@
 
 namespace gol
 {
-	struct DrawInfo
-	{
-		uint32_t SimulationTextureID;
-		GameState State;
-		bool GridDead;
-	};
-
 	class GameActionButton
 	{
 	public:
+		GameActionButton() = default;
+
 		GameActionButton(
 			std::string_view label, 
 			GameAction actionReturn,
 			Size2F size,
-			const std::function<bool(const DrawInfo&)>& enabledCheck,
+			const std::function<bool(GameState)>& enabledCheck,
 			const std::vector<ImGuiKeyChord>& shortcuts,
 			bool lineBreak = false
 		);
 
-		GameAction Update(const DrawInfo& state);
+		GameAction Update(GameState state);
 	private:
 		std::string_view m_Label;
 		GameAction m_Return;
 		Size2F m_Size;
 
-		std::function<bool(const DrawInfo&)> m_Enabled;
+		std::function<bool(GameState)> m_Enabled;
 
 		std::vector<KeyShortcut> m_Shortcuts;
 		bool m_LineBreak;
