@@ -58,12 +58,14 @@ gol::GameState gol::SimulationEditor::PaintUpdate(const GraphicsHandlerArgs& arg
 {
     m_Graphics.DrawGrid(m_Grid.Data(), args);
 
-    const std::optional<Vec2> gridPos = CursorGridPos();
+    auto gridPos = CursorGridPos();
     if (gridPos)
     {
-        UpdateMouseState(*gridPos);
         m_Graphics.DrawSelection(*gridPos, args);
+        if (gridPos->X >= 0 && gridPos->Y >= 0 && gridPos->X < m_Grid.Width() && gridPos->Y < m_Grid.Height())
+            UpdateMouseState(*gridPos);
     }
+
     return m_Grid.Dead() 
         ? GameState::Empty 
         : GameState::Paint;
@@ -125,9 +127,6 @@ std::optional<gol::Vec2> gol::SimulationEditor::CursorGridPos()
     vec /= m_Graphics.Camera.Zoom;
     vec += center;
     vec /= glm::vec2 { (static_cast<float>(view.Width) / m_Grid.Width()), (static_cast<float>(view.Height) / m_Grid.Height()) };
-    //((cursor.X - view.X) - m_Graphics.Camera.Center.X) * m_Graphics.Camera.Zoom + m_Graphics.Camera.Center.X
-    if (vec.x < 0 || vec.y < 0 || vec.x >= m_Grid.Width() || vec.y >= m_Grid.Height())
-        return std::nullopt;
 
     return Vec2(static_cast<int32_t>(vec.x), static_cast<int32_t>(vec.y));
 }
@@ -167,19 +166,17 @@ void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)
             m_DrawMode = *m_Grid.Get(gridPos.X, gridPos.Y) ? DrawMode::Delete : DrawMode::Insert;
 
         m_Grid.Set(gridPos.X, gridPos.Y, m_DrawMode == DrawMode::Insert);
+        return;
     }
-    else
-        m_DrawMode = DrawMode::None;
+    m_DrawMode = DrawMode::None;
 }
 
 void gol::SimulationEditor::UpdateViewport()
 {
     Rect bounds = ViewportBounds();
     
-    INFO("[{}, {}, {}, {}] does not contain ({}, {})", bounds.X, bounds.Y, bounds.Width, bounds.Height, ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
-
     if (bounds.InBounds(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y))
         m_Graphics.ZoomBy(ImGui::GetIO().MouseWheel / 10.f);
-    
+
     glViewport(bounds.X - m_WindowBounds.X, bounds.Y - m_WindowBounds.Y, bounds.Width, bounds.Height);
 }

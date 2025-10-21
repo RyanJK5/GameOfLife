@@ -58,12 +58,11 @@ void gol::Game::Begin()
     while (Open())
     {
         BeginFrame();
-
+        
         auto action = m_Control.Update(m_State);
         m_State = m_Editor.Update({ m_State, action });
         ImGui::Begin("Presets");
         ImGui::End();
-
         EndFrame();
     }
 }
