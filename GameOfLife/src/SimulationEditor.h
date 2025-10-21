@@ -44,8 +44,8 @@ namespace gol
 	private:
 		GameGrid m_Grid;
 		GameGrid m_InitialGrid;
-
 		GraphicsHandler m_Graphics;
+		
 		std::vector<GameActionButton> m_Buttons;
 		RectF m_WindowBounds;
 

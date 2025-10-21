@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\GameActionButton.cpp" />
     <ClCompile Include="src\GraphicsHandler.cpp" />
     <ClCompile Include="src\GameGrid.cpp" />
@@ -48,6 +49,7 @@
     <ClInclude Include="..\Dependencies\ImGUI\imgui_impl_glfw.h" />
     <ClInclude Include="..\Dependencies\ImGUI\imgui_impl_opengl3.h" />
     <ClInclude Include="..\Dependencies\ImGUI\imgui_internal.h" />
+    <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\GameEnums.h" />
     <ClInclude Include="src\GraphicsHandler.h" />
     <ClInclude Include="src\GameGrid.h" />

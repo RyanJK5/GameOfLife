@@ -4,6 +4,7 @@
 #include <vector>
 #include <filesystem>
 
+#include "Camera.h"
 #include "Graphics2D.h"
 #include "ShaderManager.h"
 
@@ -48,6 +49,7 @@ namespace gol
 		void Destroy();
 	private:
 		ShaderManager m_Shader;
+		Camera m_Camera;
 		
 		uint32_t m_GridBuffer;
 		uint32_t m_SelectionBuffer;

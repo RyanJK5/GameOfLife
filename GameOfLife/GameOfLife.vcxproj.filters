@@ -72,6 +72,9 @@
     <ClCompile Include="src\SimulationControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="resources\shader\default.shader">
@@ -1028,6 +1031,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SimulationControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

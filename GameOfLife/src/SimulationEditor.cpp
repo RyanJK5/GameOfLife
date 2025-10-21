@@ -105,21 +105,7 @@ gol::Rect gol::SimulationEditor::WindowBounds() const
 
 gol::Rect gol::SimulationEditor::ViewportBounds() const
 {
-    const Size2 gridSize = m_Grid.Size();
-
-    const float widthRatio = m_WindowBounds.Width / gridSize.Width;
-    const float heightRatio = m_WindowBounds.Height / gridSize.Height;
-    if (widthRatio > heightRatio)
-    {
-        const int32_t newWidth = static_cast<int32_t>(heightRatio * gridSize.Width);
-        const int32_t newX = (m_WindowBounds.Width - newWidth) / 2;
-        return WindowBounds();
-        //return Rect { window.X + newX, window.Y, newWidth, window.Height};
-    }
-    const int32_t newHeight = static_cast<int32_t>(widthRatio * gridSize.Height);
-    const int32_t newY = (m_WindowBounds.Height - newHeight) / 2;
     return WindowBounds();
-    //return Rect { window.X, window.Y + newY, window.Width, newHeight };
 }
 
 std::optional<gol::Vec2> gol::SimulationEditor::CursorGridPos()

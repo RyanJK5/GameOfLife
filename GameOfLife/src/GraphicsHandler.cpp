@@ -130,27 +130,32 @@ std::vector<float> gol::GraphicsHandler::GenerateGLBuffer(const std::vector<bool
     float width = static_cast<float>(info.ViewportBounds.Width) / info.GridSize.Width;
     float height = static_cast<float>(info.ViewportBounds.Height) / info.GridSize.Height;
     std::vector<float> result;
-    for (int32_t x = 0; x < info.GridSize.Width; x++)
+    for (int32_t y = 0; y < info.GridSize.Height; y++)
     {
-        for (int32_t y = 0; y < info.GridSize.Height; y++)
+        for (int32_t x = 0; x < info.GridSize.Width; x++)
         {
             if (!grid[y * info.GridSize.Width + x])
                 continue;
 
             float xCoord = width * x;
             float yCoord = height * y;
+            
+            if (x == 0 || !grid[y * info.GridSize.Width + (x - 1)])
+            {
+                result.push_back(xCoord);
+                result.push_back(yCoord);
 
-            result.push_back(xCoord);
-            result.push_back(yCoord);
+                result.push_back(xCoord);
+                result.push_back(yCoord + height);
+            }
+            if (x == info.GridSize.Width - 1 || !grid[y * info.GridSize.Width + (x + 1)])
+            {
+                result.push_back(xCoord + width);
+                result.push_back(yCoord + height);
 
-            result.push_back(xCoord);
-            result.push_back(yCoord + height);
-
-            result.push_back(xCoord + width);
-            result.push_back(yCoord + height);
-
-            result.push_back(xCoord + width);
-            result.push_back(yCoord);
+                result.push_back(xCoord + width);
+                result.push_back(yCoord);
+            }
         }
     }
 
@@ -186,17 +191,17 @@ gol::RectF gol::GraphicsHandler::GridToScreenBounds(Vec2 gridPos, const Graphics
     };
 }
 
-void gol::GraphicsHandler::DrawSelection(Vec2 gridPos, const GraphicsHandlerArgs& info)
+void gol::GraphicsHandler::DrawSelection(Vec2 gridPos, const GraphicsHandlerArgs& args)
 {
     BindFrameBuffer();
 
-    float windowWidth = info.ViewportBounds.Width;
-    float windowHeight = info.ViewportBounds.Height;
+    float windowWidth = args.ViewportBounds.Width;
+    float windowHeight = args.ViewportBounds.Height;
 
-    auto matrix = glm::ortho(0.f, windowWidth / info.Zoom, windowHeight / info.Zoom, 0.f, -1.f, 1.f);
+    auto matrix = glm::ortho(0.f, windowWidth / args.Zoom, windowHeight / args.Zoom, 0.f, -1.f, 1.f);
     m_Shader.AttachUniformMatrix4("u_MVP", matrix);
 
-    auto rect = GridToScreenBounds(gridPos, info);
+    auto rect = GridToScreenBounds(gridPos, args);
     float positions[] = 
     { 
         rect.UpperLeft().X, rect.UpperLeft().Y,
