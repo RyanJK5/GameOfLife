@@ -160,9 +160,12 @@ std::vector<float> gol::GraphicsHandler::GenerateGLBuffer(const std::vector<bool
     return result;
 }
 
-void gol::GraphicsHandler::DrawGrid(const std::vector<bool>& grid, const GraphicsHandlerArgs& info) const
+void gol::GraphicsHandler::DrawGrid(const std::vector<bool>& grid, const GraphicsHandlerArgs& info)
 {
     BindFrameBuffer();
+    auto matrix = Camera.OrthographicProjection(info.ViewportBounds.Size());
+    m_Shader.AttachUniformMatrix4("u_MVP", matrix);
+
     auto positions = GenerateGLBuffer(grid, info);
 
     GL_DEBUG(glBindBuffer(GL_ARRAY_BUFFER, m_GridBuffer));
@@ -195,10 +198,6 @@ void gol::GraphicsHandler::DrawSelection(Vec2 gridPos, const GraphicsHandlerArgs
 
     float windowWidth = args.ViewportBounds.Width;
     float windowHeight = args.ViewportBounds.Height;
-
-    Camera.Center = { args.ViewportBounds.Width / 2.f, args.ViewportBounds.Height / 2.f };
-    auto matrix = Camera.OrthographicProjection(args.ViewportBounds.Size());
-    m_Shader.AttachUniformMatrix4("u_MVP", matrix);
 
     auto rect = GridToScreenBounds(gridPos, args);
     float positions[] = 

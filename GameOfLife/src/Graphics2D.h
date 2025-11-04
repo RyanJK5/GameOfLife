@@ -62,6 +62,9 @@ namespace gol
 		Vec2F(ImVec2 vec) : GenericVec(vec.x, vec.y) { }
 		Vec2F(glm::vec2 vec) : GenericVec(vec.x, vec.y) { }
 		Vec2F(float x, float y) : GenericVec(x, y) { }
+
+		operator ImVec2() const { return { X, Y }; }
+		operator glm::vec2() const { return { X, Y }; }
 	};
 
 	struct Size2F : public GenericSize<float>
@@ -71,12 +74,29 @@ namespace gol
 		Size2F(float x, float y) : GenericSize(x, y) { }
 	};
 
+	struct RectF : public GenericRect<float>
+	{
+		RectF() : GenericRect() { }
+		RectF(const GenericRect<int>& rect) : RectF(rect.X, rect.Y, rect.Width, rect.Height) { }
+		RectF(float x, float y, float width, float height) : GenericRect(x, y, width, height) { }
+		RectF(GenericVec<float> pos, GenericSize<float> size) : GenericRect(pos, size) {}
+
+		operator GenericRect<int32_t>() const
+		{
+			return {
+				static_cast<int32_t>(X),
+				static_cast<int32_t>(Y),
+				static_cast<int32_t>(Width),
+				static_cast<int32_t>(Height),
+			};
+		}
+	};
+
 	using Vec2 = GenericVec<int32_t>;
 
 	using Size2 = GenericSize<int32_t>;
 
 	using Rect = GenericRect<int32_t>;
-	using RectF = GenericRect<float>;
 }
 
 #endif

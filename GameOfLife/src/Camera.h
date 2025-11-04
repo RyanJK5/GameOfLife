@@ -17,6 +17,10 @@ namespace gol
 		Camera() = default;
 		Camera(float zoom, glm::vec2 center) : Zoom(zoom), Center(center) { }
 	public:
+		void ZoomBy(Vec2F screenPos, const RectF& viewBounds, float zoom);
+
+		glm::vec2 ScreenToWorldPos(Vec2F pos, const Rect& viewBounds) const;
+
 		glm::mat4 OrthographicProjection(Size2 viewSize) const;
 	};
 }

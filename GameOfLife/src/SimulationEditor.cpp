@@ -113,20 +113,17 @@ gol::Rect gol::SimulationEditor::ViewportBounds() const
 
 std::optional<gol::Vec2> gol::SimulationEditor::CursorGridPos()
 {
-    Rect view = ViewportBounds();
     Vec2F cursor = ImGui::GetMousePos();
-    if (!view.InBounds(cursor.X, cursor.Y))
+    if (!ViewportBounds().InBounds(cursor.X, cursor.Y))
         return std::nullopt;
 
-    m_Graphics.Camera.Center = { ViewportBounds().Width / 2.f, ViewportBounds().Height / 2.f};
-    glm::vec2 vec = { 
-        (cursor.X - view.X) , 
-        (cursor.Y - view.Y) };
-    glm::vec2 center = m_Graphics.Camera.Center;
-    vec -= center;
-    vec /= m_Graphics.Camera.Zoom;
-    vec += center;
-    vec /= glm::vec2 { (static_cast<float>(view.Width) / m_Grid.Width()), (static_cast<float>(view.Height) / m_Grid.Height()) };
+    glm::vec2 vec = m_Graphics.Camera.ScreenToWorldPos(cursor, ViewportBounds());
+    vec /= glm::vec2 { 
+        (static_cast<float>(ViewportBounds().Width) / m_Grid.Width()), 
+        (static_cast<float>(ViewportBounds().Height) / m_Grid.Height())
+    };
+    if (vec.x < 0 || vec.y < 0 || vec.x > m_Grid.Width() || vec.y >= m_Grid.Height())
+        return std::nullopt;
 
     return Vec2(static_cast<int32_t>(vec.x), static_cast<int32_t>(vec.y));
 }
@@ -173,10 +170,16 @@ void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)
 
 void gol::SimulationEditor::UpdateViewport()
 {
-    Rect bounds = ViewportBounds();
+    const Rect bounds = ViewportBounds();
     
-    if (bounds.InBounds(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y))
-        m_Graphics.ZoomBy(ImGui::GetIO().MouseWheel / 10.f);
+    auto mousePos = ImGui::GetIO().MousePos;
+    if (bounds.InBounds(mousePos.x, mousePos.y))
+    {
+        if (ImGui::GetIO().MouseWheel != 0)
+        {
+            m_Graphics.Camera.ZoomBy(mousePos, bounds, ImGui::GetIO().MouseWheel / 10.f);
+        }
+    }
 
     glViewport(bounds.X - m_WindowBounds.X, bounds.Y - m_WindowBounds.Y, bounds.Width, bounds.Height);
 }

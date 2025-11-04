@@ -35,14 +35,14 @@ namespace gol
 
 		void RescaleFrameBuffer(Size2 windowSize);
 
-		void DrawGrid(const std::vector<bool>& grid, const GraphicsHandlerArgs& info) const;
+		void DrawGrid(const std::vector<bool>& grid, const GraphicsHandlerArgs& info);
 		void DrawSelection(Vec2 gridPos, const GraphicsHandlerArgs& info);
 		void ClearBackground(const Rect& windowBounds, const Rect& viewportBounds) const;
 
 		void BindFrameBuffer() const;
 		void UnbindFrameBuffer() const;
 
-		inline void ZoomBy(float zoom) { Camera.Zoom *= 1.f + zoom; }
+		void ZoomBy(Vec2 screenPos, float zoom);
 
 		inline uint32_t TextureID() const { return m_Texture; }
 	private:
