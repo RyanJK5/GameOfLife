@@ -13,6 +13,7 @@ gol::GameState gol::SimulationEditor::Update(const SimulationEditorArgs& args)
     GraphicsHandlerArgs graphicsArgs = { ViewportBounds(), m_Grid.Size(), 1.f };
 
     UpdateViewport();
+    UpdateDragState();
     m_Graphics.RescaleFrameBuffer(WindowBounds().Size());
     m_Graphics.ClearBackground(WindowBounds(), graphicsArgs.ViewportBounds);
 
@@ -155,9 +156,7 @@ gol::GameState gol::SimulationEditor::UpdateState(GameAction action)
 
 void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)
 {
-    bool mouseState = ImGui::IsMouseDown(ImGuiMouseButton_Left);
-    
-    if (mouseState)
+    if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
     {
         if (m_DrawMode == DrawMode::None)
             m_DrawMode = *m_Grid.Get(gridPos.X, gridPos.Y) ? DrawMode::Delete : DrawMode::Insert;
@@ -166,6 +165,20 @@ void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)
         return;
     }
     m_DrawMode = DrawMode::None;
+}
+
+void gol::SimulationEditor::UpdateDragState()
+{
+    if (ImGui::IsMouseDragging(ImGuiMouseButton_Right))
+    {
+        Vec2F delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+        m_Graphics.Camera.Translate(glm::vec2(delta) - m_DeltaLast);
+        m_DeltaLast = delta;
+    }
+    else
+    {
+        m_DeltaLast = glm::vec2(0.f);
+    }
 }
 
 void gol::SimulationEditor::UpdateViewport()

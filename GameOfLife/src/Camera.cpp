@@ -1,9 +1,18 @@
 #include "Camera.h"
+#include "Logging.h"
 
 void gol::Camera::ZoomBy(Vec2F screenPos, const RectF& viewBounds, float zoom)
 {
     Zoom *= 1.f + zoom;
-    Center += (ScreenToWorldPos(screenPos, viewBounds) - Center) * zoom;
+    if (Zoom < MaxZoom)
+        Center += (ScreenToWorldPos(screenPos, viewBounds) - Center) * zoom;
+    Zoom = std::min(Zoom, MaxZoom);
+    INFO("{}", Zoom);
+}
+
+void gol::Camera::Translate(glm::vec2 delta)
+{
+    Center -= delta / Zoom;
 }
 
 glm::vec2 gol::Camera::ScreenToWorldPos(Vec2F pos, const Rect& viewBounds) const

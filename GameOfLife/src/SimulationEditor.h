@@ -39,6 +39,7 @@ namespace gol
 		void UpdateViewport();
 		std::optional<Vec2> CursorGridPos();
 		void UpdateMouseState(Vec2 gridPos);
+		void UpdateDragState();
 	private:
 		static constexpr double DefaultTickDelayMs = 10.;
 	private:
@@ -50,6 +51,7 @@ namespace gol
 		RectF m_WindowBounds;
 
 		double m_TickDelayMs = DefaultTickDelayMs;
+		glm::vec2 m_DeltaLast;
 		DrawMode m_DrawMode = DrawMode::None;
 	};
 }
