@@ -17,6 +17,8 @@ namespace gol
 
 		GenericVec() : X(0), Y(0) { }
 		GenericVec(T x, T y) : X(x), Y(y) { }
+
+		auto operator<=>(const GenericVec<T>&) const = default;
 	};
 
 	template <std::totally_ordered T>

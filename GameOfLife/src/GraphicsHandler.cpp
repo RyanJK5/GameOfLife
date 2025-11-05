@@ -124,44 +124,33 @@ void gol::GraphicsHandler::ClearBackground(const Rect& windowBounds, const Rect&
     UnbindFrameBuffer();
 }
 
-std::vector<float> gol::GraphicsHandler::GenerateGLBuffer(const std::vector<bool>& grid, const GraphicsHandlerArgs& info) const
+std::vector<float> gol::GraphicsHandler::GenerateGLBuffer(const std::set<Vec2>& grid, const GraphicsHandlerArgs&) const
 {
     float width = SimulationEditor::DefaultCellWidth;
     float height = SimulationEditor::DefaultCellHeight;
     std::vector<float> result;
-    for (int32_t y = 0; y < info.GridSize.Height; y++)
+    for (const Vec2& vec : grid)
     {
-        for (int32_t x = 0; x < info.GridSize.Width; x++)
-        {
-            if (!grid[y * info.GridSize.Width + x])
-                continue;
+        float xCoord = vec.X * width;
+        float yCoord = vec.Y * height;
+        
+        result.push_back(xCoord);
+        result.push_back(yCoord);
 
-            float xCoord = width * x;
-            float yCoord = height * y;
+        result.push_back(xCoord);
+        result.push_back(yCoord + height);
             
-            if (x == 0 || !grid[y * info.GridSize.Width + (x - 1)])
-            {
-                result.push_back(xCoord);
-                result.push_back(yCoord);
+        result.push_back(xCoord + width);
+        result.push_back(yCoord + height);
 
-                result.push_back(xCoord);
-                result.push_back(yCoord + height);
-            }
-            if (x == info.GridSize.Width - 1 || !grid[y * info.GridSize.Width + (x + 1)])
-            {
-                result.push_back(xCoord + width);
-                result.push_back(yCoord + height);
-
-                result.push_back(xCoord + width);
-                result.push_back(yCoord);
-            }
-        }
+        result.push_back(xCoord + width);
+        result.push_back(yCoord);
     }
 
     return result;
 }
 
-void gol::GraphicsHandler::DrawGrid(const std::vector<bool>& grid, const GraphicsHandlerArgs& info)
+void gol::GraphicsHandler::DrawGrid(const std::set<Vec2>& grid, const GraphicsHandlerArgs& info)
 {
     BindFrameBuffer();
     auto matrix = Camera.OrthographicProjection(info.ViewportBounds.Size());

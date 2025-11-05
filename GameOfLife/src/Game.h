@@ -36,8 +36,8 @@ namespace gol
 	public:
 		static constexpr int32_t DefaultWindowWidth = 1920;
 		static constexpr int32_t DefaultWindowHeight = 1080;
-		static constexpr int32_t DefaultGridWidth = 64;
-		static constexpr int32_t DefaultGridHeight = 36;
+		static constexpr int32_t DefaultGridWidth = 0;
+		static constexpr int32_t DefaultGridHeight = 0;
 
 		static constexpr int32_t IOFlags =
 			ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_DockingEnable;

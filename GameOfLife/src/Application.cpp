@@ -2,9 +2,6 @@
 #include <iostream>
 
 #include "Game.h"
-#include "GUILoader.h"
-
-//#include "test.cpp"
 
 int main()
 {

@@ -65,8 +65,7 @@ gol::GameState gol::SimulationEditor::PaintUpdate(const GraphicsHandlerArgs& arg
     if (gridPos)
     {
         m_Graphics.DrawSelection(*gridPos, args);
-        if (gridPos->X >= 0 && gridPos->Y >= 0 && gridPos->X < m_Grid.Width() && gridPos->Y < m_Grid.Height())
-            UpdateMouseState(*gridPos);
+        UpdateMouseState(*gridPos);
     }
 
     return m_Grid.Dead() 
@@ -134,11 +133,11 @@ std::optional<gol::Vec2> gol::SimulationEditor::CursorGridPos()
     glm::vec2 other = m_Graphics.Camera.ScreenToWorldPos(Vec2F{ (float)ViewportBounds().X, (float)ViewportBounds().Y }, ViewportBounds());
     vec /= glm::vec2 { DefaultCellWidth  , 
                        DefaultCellHeight };
-
-    if (vec.x < 0 || vec.y < 0 || vec.x > m_Grid.Width() || vec.y >= m_Grid.Height())
+    
+    Vec2 result = { static_cast<int32_t>(vec.x), static_cast<int32_t>(vec.y) };
+    if (!m_Grid.InBounds(result))
         return std::nullopt;
-
-    return Vec2(static_cast<int32_t>(vec.x), static_cast<int32_t>(vec.y));
+    return result;
 }
 
 gol::GameState gol::SimulationEditor::UpdateState(GameAction action)
