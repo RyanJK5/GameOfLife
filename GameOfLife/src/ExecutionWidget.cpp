@@ -9,6 +9,7 @@ gol::SimulationControlResult gol::ExecutionWidget::Update(GameState state)
 			result = update;
 	};
 
+	ImGui::Text("Execution");
 	updateIfNone(m_StartButton.Update(state));
 	updateIfNone(m_ClearButton.Update(state));
 	updateIfNone(m_ResetButton.Update(state));

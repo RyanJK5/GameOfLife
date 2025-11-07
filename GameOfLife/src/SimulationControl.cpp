@@ -25,8 +25,6 @@ gol::SimulationControlResult gol::SimulationControl::Update(GameState state)
 {
     ImGui::Begin("Simulation Control");
 
-    ImGui::Text("Execution");
-
     SimulationControlResult result { .State = state };
     
     FillResuts(result, m_ExecutionWidget.Update(state));
