@@ -35,7 +35,7 @@ namespace gol
 		void RescaleFrameBuffer(Size2 windowSize);
 
 		void DrawGrid(const std::set<Vec2>& grid, const GraphicsHandlerArgs& info);
-		void DrawSelection(Vec2 gridPos, const GraphicsHandlerArgs& info);
+		void DrawSelection(Vec2 anchor, Vec2 sentinel, const GraphicsHandlerArgs& info);
 		void ClearBackground(const GraphicsHandlerArgs& args) const;
 
 		void BindFrameBuffer() const;
@@ -45,7 +45,7 @@ namespace gol
 	private:
 		std::vector<float> GenerateGLBuffer(const std::set<Vec2>& grid) const;
 
-		RectF GridToScreenBounds(Vec2 pos, const GraphicsHandlerArgs& info) const;
+		RectF GridToScreenBounds(Vec2 anchor, Vec2 sentinel, const GraphicsHandlerArgs& info) const;
 
 		void Move(GraphicsHandler&& other) noexcept;
 		void Destroy();

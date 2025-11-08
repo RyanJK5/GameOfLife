@@ -10,7 +10,7 @@ namespace gol
 	class DelayWidget
 	{
 	public:
-		DelayWidget(std::span<const ImGuiKeyChord> shortcuts = {})
+		DelayWidget(std::span<const ImGuiKeyChord> = {})
 		{ }
 		SimulationControlResult Update(GameState state);
 	private:

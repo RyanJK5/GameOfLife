@@ -65,9 +65,10 @@ gol::GameState gol::SimulationEditor::PaintUpdate(const GraphicsHandlerArgs& arg
     m_Graphics.DrawGrid(m_Grid.Data(), args);
 
     auto gridPos = CursorGridPos();
+    if (m_AnchorSelection && m_SentinelSelection)
+        m_Graphics.DrawSelection(*m_AnchorSelection, *m_SentinelSelection, args);
     if (gridPos)
     {
-        m_Graphics.DrawSelection(*gridPos, args);
         UpdateMouseState(*gridPos);
     }
 
@@ -190,15 +191,43 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
 
 void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)
 {
+    if (SelectionArea(gridPos))
+        return;
     if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
     {
-        if (m_DrawMode == DrawMode::None)
-            m_DrawMode = *m_Grid.Get(gridPos.X, gridPos.Y) ? DrawMode::Delete : DrawMode::Insert;
+        if (m_EditorMode == EditorMode::None)
+        {
+            if (m_SentinelSelection != m_AnchorSelection)
+            {
+                m_AnchorSelection = gridPos;
+                m_SentinelSelection = gridPos;
+            }
+            m_EditorMode = *m_Grid.Get(gridPos.X, gridPos.Y) ? EditorMode::Delete : EditorMode::Insert;
+        }
 
-        m_Grid.Set(gridPos.X, gridPos.Y, m_DrawMode == DrawMode::Insert);
+        m_Grid.Set(gridPos.X, gridPos.Y, m_EditorMode == EditorMode::Insert);
         return;
     }
-    m_DrawMode = DrawMode::None;
+    m_EditorMode = EditorMode::None;
+}
+
+bool gol::SimulationEditor::SelectionArea(Vec2 gridPos)
+{
+    if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)))
+    {
+        m_EditorMode = EditorMode::Select;
+        m_SentinelSelection = gridPos;
+        if (!m_AnchorSelection)
+            m_AnchorSelection = gridPos;
+        return true;
+    }
+
+    if (m_AnchorSelection != m_SentinelSelection)
+        return false;
+
+    m_AnchorSelection = gridPos;
+    m_SentinelSelection = gridPos;
+    return false;
 }
 
 void gol::SimulationEditor::UpdateDragState()

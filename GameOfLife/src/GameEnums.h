@@ -13,9 +13,9 @@ namespace gol
 		None, Start, Pause, Resume, Restart, Reset, Clear, Step, Resize
 	};
 
-	enum class DrawMode
+	enum class EditorMode
 	{
-		None, Insert, Delete
+		None, Insert, Delete, Select
 	};
 }
 

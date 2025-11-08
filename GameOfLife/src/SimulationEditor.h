@@ -36,20 +36,25 @@ namespace gol
 		GameState UpdateState(const SimulationControlResult& action);
 		void UpdateViewport();
 		std::optional<Vec2> CursorGridPos();
+		
 		void UpdateMouseState(Vec2 gridPos);
+		bool SelectionArea(Vec2 gridPos);
 		void UpdateDragState();
+
 	private:
 		static constexpr double DefaultTickDelayMs = 0.;
 	private:
 		GameGrid m_Grid;
 		GameGrid m_InitialGrid;
 		GraphicsHandler m_Graphics;
-		
 		RectF m_WindowBounds;
+
+		std::optional<Vec2> m_AnchorSelection;
+		std::optional<Vec2> m_SentinelSelection;
 
 		glm::vec2 m_DeltaLast = { 0, 0 };
 		double m_TickDelayMs = DefaultTickDelayMs;
-		DrawMode m_DrawMode = DrawMode::None;
+		EditorMode m_EditorMode = EditorMode::None;
 	};
 }
 
