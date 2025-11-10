@@ -38,7 +38,11 @@ namespace gol
 		void UpdateViewport();
 		std::optional<Vec2> CursorGridPos();
 		
-		void CopySelection();
+		void CopySelection(bool cut = false);
+		void CutSelection();
+		void PasteSelection();
+
+		void NudgeSelection(Vec2 direction);
 		Rect SelectionBounds() const;
 
 		void UpdateMouseState(Vec2 gridPos);
@@ -53,7 +57,7 @@ namespace gol
 
 		GraphicsHandler m_Graphics;
 		RectF m_WindowBounds;
-
+		
 		std::optional<Vec2> m_AnchorSelection;
 		std::optional<Vec2> m_SentinelSelection;
 

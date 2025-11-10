@@ -33,6 +33,8 @@ namespace gol
 
 		bool Set(int32_t x, int32_t y, bool active);
 		bool Toggle(int32_t x, int32_t y);
+		
+		void TranslateRegion(const Rect& region, Vec2 translation);
 
 		void ClearRegion(const Rect& region);
 		void InsertGrid(const GameGrid& grid, Vec2 pos);

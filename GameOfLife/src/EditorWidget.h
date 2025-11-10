@@ -13,10 +13,8 @@ namespace gol
             : TemplatedButtonInternal(shortcuts)
         {}
     protected:
-        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 3.f, GameActionButton::DefaultButtonHeight }; }
-        virtual bool Enabled(GameState state) const final { 
-            return state == GameState::Paint || state == GameState::Empty || state == GameState::Paused;
-        }
+        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 4.f, GameActionButton::DefaultButtonHeight }; }
+        virtual bool Enabled(GameState state) const final { return state == GameState::Paint || state == GameState::Empty || state == GameState::Paused; }
     };
 
     class CutButton : public TemplatedButton<"Cut", GameAction::Cut, false>
@@ -26,10 +24,8 @@ namespace gol
             : TemplatedButtonInternal(shortcuts)
         {}
     protected:
-        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 2.f, GameActionButton::DefaultButtonHeight }; }
-        virtual bool Enabled(GameState state) const final { 
-            return state == GameState::Paint || state == GameState::Empty || state == GameState::Paused; 
-        }
+        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 3.f, GameActionButton::DefaultButtonHeight }; }
+        virtual bool Enabled(GameState state) const final { return state == GameState::Paint || state == GameState::Empty; }
     };
 
     class PasteButton : public TemplatedButton<"Paste", GameAction::Paste, false>
@@ -41,10 +37,19 @@ namespace gol
     public:
         bool ClipboardCopied = false;
     protected:
+        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 2.f, GameActionButton::DefaultButtonHeight }; }
+        virtual bool Enabled(GameState state) const final { return ClipboardCopied && (state == GameState::Paint || state == GameState::Empty); }
+    };
+
+    class DeleteButton : public TemplatedButton<"Delete", GameAction::Delete, false>
+    {
+    public:
+        DeleteButton(std::span<const ImGuiKeyChord> shortcuts = {})
+            : TemplatedButtonInternal(shortcuts)
+        {}
+    protected:
         virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x, GameActionButton::DefaultButtonHeight }; }
-        virtual bool Enabled(GameState state) const final { 
-            return ClipboardCopied && (state == GameState::Paint || state == GameState::Empty || state == GameState::Paused); 
-        }
+        virtual bool Enabled(GameState state) const final { return state == GameState::Paint || state == GameState::Empty; }
     };
 
     class EditorWidget
@@ -54,6 +59,7 @@ namespace gol
             : m_CopyButton(shortcuts.at(GameAction::Copy))
             , m_CutButton(shortcuts.at(GameAction::Cut))
             , m_PasteButton(shortcuts.at(GameAction::Paste))
+            , m_DeleteButton(shortcuts.at(GameAction::Delete))
         {}
 
         SimulationControlResult Update(GameState state);
@@ -61,6 +67,7 @@ namespace gol
         CopyButton m_CopyButton;
         CutButton m_CutButton;
         PasteButton m_PasteButton;
+        DeleteButton m_DeleteButton;
     };
 }
 

@@ -21,9 +21,15 @@ namespace gol
 		Step, 
 		Resize,
 		
-		Copy, 
-		Cut, 
-		Paste
+		Delete,
+		Copy,
+		Cut,
+		Paste,
+
+		NudgeLeft,
+		NudgeRight,
+		NudgeUp,
+		NudgeDown,
 	};
 
 	enum class EditorMode

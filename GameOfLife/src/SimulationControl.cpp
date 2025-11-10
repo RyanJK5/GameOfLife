@@ -2,8 +2,28 @@
 
 #include "Logging.h"
 
+gol::SimulationControlResult gol::SelectionShortcuts::Update(GameState)
+{
+    auto result = GameAction::None;
+    for (auto&& [action, actionShortcuts] : Shortcuts)
+    {
+        bool active = false;
+        for (auto& shortcut : actionShortcuts)
+            active = shortcut.Active() || active;
+        if (active && result == GameAction::None)
+            result = action;
+    }
+    return { .Action = result };
+}
+
 gol::SimulationControl::SimulationControl(const StyleLoader::StyleInfo<ImVec4>& fileInfo)
-    : m_ExecutionWidget(fileInfo.Shortcuts)
+    : m_SelectionShortcuts(
+        fileInfo.Shortcuts.at(GameAction::NudgeLeft),
+        fileInfo.Shortcuts.at(GameAction::NudgeRight),
+        fileInfo.Shortcuts.at(GameAction::NudgeUp),
+        fileInfo.Shortcuts.at(GameAction::NudgeDown)
+    )
+    , m_ExecutionWidget(fileInfo.Shortcuts)
     , m_ResizeWidget(fileInfo.Shortcuts.at(GameAction::Resize))
     , m_StepWidget(fileInfo.Shortcuts.at(GameAction::Step))
     , m_DelayWidget()
@@ -33,6 +53,7 @@ gol::SimulationControlResult gol::SimulationControl::Update(GameState state)
     FillResults(result, m_StepWidget.Update(state));
     FillResults(result, m_DelayWidget.Update(state));
     FillResults(result, m_EditorWidget.Update(state));
+    FillResults(result, m_SelectionShortcuts.Update(state));
 
     ImGui::End();
     return result;

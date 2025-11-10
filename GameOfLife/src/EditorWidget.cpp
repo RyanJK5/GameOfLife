@@ -16,6 +16,7 @@ gol::SimulationControlResult gol::EditorWidget::Update(GameState state)
 	if (result != GameAction::None)
 		m_PasteButton.ClipboardCopied = true;
 	updateIfNone(m_PasteButton.Update(state));
+	updateIfNone(m_DeleteButton.Update(state));
 	
 	return { .Action = result };
 }

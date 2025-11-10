@@ -8,10 +8,15 @@ shortcuts:
     step: [Ctrl+Right]
     resize: []
 
+    delete: [Backspace, Delete]
     copy: [Ctrl+C]
     cut: [Ctrl+X]
     paste: [Ctrl+V]
 
+    nudge_left: [Left]
+    nudge_right: [Right]
+    nudge_up: [Up]
+    nudge_down: [Down]
 colors:
     transparent: [0, 0, 0, 0]
     background: [0.1, 0.1, 0.1, 1]

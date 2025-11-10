@@ -43,11 +43,6 @@ namespace gol::RLEEncoder
 		return result;
 	}
 
-	constexpr uint32_t num = FormatNumber<uint32_t>(0b11111111);
-	constexpr char arr[] = { 0b01111111, 0b01000011, 0b01000000, 0b01000000, 0 };
-	constexpr uint32_t result = ReadNumber<uint32_t>(arr);
-	static_assert(result == 0b11111111);
-
 	template <std::integral StorageType>
 	inline std::vector<StorageType> EncodeRegion(const GameGrid& grid, const Rect& region)
 	{

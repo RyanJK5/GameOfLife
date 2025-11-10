@@ -1,6 +1,8 @@
 #include "GameGrid.h"
 #include "Logging.h"
 
+#include <ranges>
+#include <algorithm>
 #include <iostream>
 #include <map>
 
@@ -83,6 +85,25 @@ bool gol::GameGrid::Set(int32_t x, int32_t y, bool active)
 
 	m_Generation = 0;
 	return true;
+}
+
+void gol::GameGrid::TranslateRegion(const Rect& region, Vec2 translation)
+{
+	std::vector<Vec2> newCells;
+	auto it = m_Data.begin();
+	while (it != m_Data.end())
+	{
+		if (region.InBounds(*it))
+		{
+			newCells.push_back({ it->X + translation.X, it->Y + translation.Y });
+			m_Data.erase(it++);
+		}
+		else
+		{
+			++it;
+		}
+	}
+	m_Data.insert_range(newCells);
 }
 
 void gol::GameGrid::ClearRegion(const Rect& region)

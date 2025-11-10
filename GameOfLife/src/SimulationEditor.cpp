@@ -147,12 +147,52 @@ gol::Rect gol::SimulationEditor::ViewportBounds() const
     return WindowBounds();
 }
 
-void gol::SimulationEditor::CopySelection() {
+void gol::SimulationEditor::CopySelection(bool cut) {
+    if (!m_AnchorSelection)
+        return;
     ImGui::SetClipboardText(
         reinterpret_cast<const char*>(
-            RLEEncoder::EncodeRegion<uint16_t>(m_Grid, SelectionBounds()).data()
+            RLEEncoder::EncodeRegion<uint32_t>(m_Grid, SelectionBounds()).data()
         )
     );
+    if (!cut)
+    {
+        m_AnchorSelection = std::nullopt;
+        m_SentinelSelection = std::nullopt;
+    }
+}
+
+void gol::SimulationEditor::CutSelection()
+{
+    if (!m_AnchorSelection)
+        return;
+    CopySelection(true);
+    m_Grid.ClearRegion(SelectionBounds());
+    m_AnchorSelection = std::nullopt;
+    m_SentinelSelection = std::nullopt;
+}
+
+void gol::SimulationEditor::PasteSelection()
+{
+    auto gridPos = CursorGridPos();
+    if (!gridPos)
+        gridPos = m_AnchorSelection;
+    if (!gridPos)
+        return;
+    
+    GameGrid insert = RLEEncoder::DecodeRegion<uint32_t>(ImGui::GetClipboardText());
+    m_Grid.InsertGrid(insert, *gridPos);
+    m_AnchorSelection = gridPos;
+    m_SentinelSelection = { gridPos->X + insert.Width(), gridPos->Y + insert.Height() };
+}
+
+void gol::SimulationEditor::NudgeSelection(Vec2 direction)
+{
+    if (!m_AnchorSelection || (m_AnchorSelection == m_SentinelSelection))
+        return;
+    m_Grid.TranslateRegion(SelectionBounds(), direction);
+    *m_AnchorSelection += direction;
+    *m_SentinelSelection += direction;
 }
 
 gol::Rect gol::SimulationEditor::SelectionBounds() const
@@ -214,29 +254,32 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
         m_Graphics.Camera.Center = { result.NewDimensions->Width * DefaultCellWidth / 2.f, result.NewDimensions->Height * DefaultCellHeight / 2.f };
         return GameState::Paint;
     case Copy:
-        if (m_AnchorSelection)
-        {
-            CopySelection();
-            m_AnchorSelection = std::nullopt;
-            m_SentinelSelection = std::nullopt;
-        }
+        CopySelection();
         return result.State;
     case Cut:
-        if (m_AnchorSelection)
-        {
-            CopySelection();
-            m_Grid.ClearRegion(SelectionBounds());
-            m_AnchorSelection = std::nullopt;
-            m_SentinelSelection = std::nullopt;
-        }
+        CutSelection();
         return result.State;
     case Paste:
-        auto gridPos = CursorGridPos();
-        if (gridPos)
-            m_Grid.InsertGrid(RLEEncoder::DecodeRegion<uint16_t>(ImGui::GetClipboardText()), *gridPos);
+        PasteSelection();
         return result.State;
-
+    case Delete:
+        if (m_AnchorSelection)
+            m_Grid.ClearRegion(SelectionBounds());
+        return result.State;
+    case NudgeLeft:
+        NudgeSelection({ -1, 0 });
+        return result.State;
+    case NudgeRight:
+        NudgeSelection({ 1, 0 });
+        return result.State;
+    case NudgeUp:
+        NudgeSelection({ 0, -1 });
+        return result.State;
+    case NudgeDown:
+        NudgeSelection({ 0, 1 });
+        return result.State;
     }
+
     throw std::exception("Cannot pass 'None' as action to UpdateState");
 }
 
@@ -275,7 +318,6 @@ bool gol::SimulationEditor::UpdateSelectionArea(Vec2 gridPos)
 
     if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && (m_AnchorSelection != m_SentinelSelection))
     {
-        INFO("({}), ({})", m_AnchorSelection.has_value(), m_SentinelSelection.has_value());
         return false;
     }
 

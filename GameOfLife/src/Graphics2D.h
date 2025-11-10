@@ -19,6 +19,12 @@ namespace gol
 		constexpr GenericVec(T x, T y) : X(x), Y(y) { }
 
 		constexpr auto operator<=>(const GenericVec<T>&) const = default;
+
+		constexpr GenericVec operator+(GenericVec<T> other) const { return { X + other.X, Y + other.Y }; }
+		constexpr GenericVec operator-(GenericVec<T> other) const { return { X - other.X, Y - other.Y }; }
+
+		constexpr GenericVec<T>& operator+=(GenericVec<T> other) { X += other.X; Y += other.Y; return *this; }
+		constexpr GenericVec<T>& operator-=(GenericVec<T> other) { X -= other.X; Y -= other.Y; return *this; }
 	};
 
 	template <std::totally_ordered T>
