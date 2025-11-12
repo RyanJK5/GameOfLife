@@ -8,6 +8,7 @@ shortcuts:
     step: [Ctrl+Right]
     resize: []
 
+    deselect: [Esc]
     delete: [Backspace, Delete]
     copy: [Ctrl+C]
     cut: [Ctrl+X]

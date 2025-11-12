@@ -24,13 +24,15 @@ namespace gol
 			const std::vector<ImGuiKeyChord>& left, 
 			const std::vector<ImGuiKeyChord>& right, 
 			const std::vector<ImGuiKeyChord>& up, 
-			const std::vector<ImGuiKeyChord>& down
+			const std::vector<ImGuiKeyChord>& down,
+			const std::vector<ImGuiKeyChord>& deselect
 		)
 			: Shortcuts({
-				{ GameAction::NudgeLeft,  left  | MapChordsToShortcuts },
-				{ GameAction::NudgeRight, right | MapChordsToShortcuts },
-				{ GameAction::NudgeUp,    up    | MapChordsToShortcuts },
-				{ GameAction::NudgeDown,  down  | MapChordsToShortcuts }
+				{ GameAction::NudgeLeft,  left      | MapChordsToShortcuts },
+				{ GameAction::NudgeRight, right     | MapChordsToShortcuts },
+				{ GameAction::NudgeUp,    up        | MapChordsToShortcuts },
+				{ GameAction::NudgeDown,  down      | MapChordsToShortcuts },
+				{ GameAction::Deselect,   deselect  | MapChordsToShortcuts }
 			})
 		{ }
 

@@ -27,7 +27,8 @@ gol::SimulationControl::SimulationControl(const StyleLoader::StyleInfo<ImVec4>& 
         fileInfo.Shortcuts.at(GameAction::NudgeLeft),
         fileInfo.Shortcuts.at(GameAction::NudgeRight),
         fileInfo.Shortcuts.at(GameAction::NudgeUp),
-        fileInfo.Shortcuts.at(GameAction::NudgeDown)
+        fileInfo.Shortcuts.at(GameAction::NudgeDown),
+        fileInfo.Shortcuts.at(GameAction::Deselect)
     )
     , m_ExecutionWidget(fileInfo.Shortcuts)
     , m_ResizeWidget(fileInfo.Shortcuts.at(GameAction::Resize))

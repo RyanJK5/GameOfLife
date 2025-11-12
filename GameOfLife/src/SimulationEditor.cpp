@@ -264,6 +264,10 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
         if (m_AnchorSelection)
             m_Grid.ClearRegion(SelectionBounds());
         return result.State;
+    case Deselect:
+		m_AnchorSelection = std::nullopt;
+        m_SentinelSelection = std::nullopt;
+        return result.State;
     case NudgeLeft:
         NudgeSelection({ -result.NudgeSize, 0 });
         return result.State;

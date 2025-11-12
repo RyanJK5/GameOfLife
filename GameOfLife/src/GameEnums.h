@@ -21,6 +21,7 @@ namespace gol
 		Step, 
 		Resize,
 		
+		Deselect,
 		Delete,
 		Copy,
 		Cut,

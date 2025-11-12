@@ -103,6 +103,7 @@ namespace gol::StyleLoader
 		{ "Shift",     ImGuiMod_Shift      },
 		{ "Enter",     ImGuiKey_Enter      },
 		{ "Space",     ImGuiKey_Space      },
+		{ "Esc",       ImGuiKey_Escape     },
 		{ "A",         ImGuiKey_A          },
 		{ "B",         ImGuiKey_B          },
 		{ "C",         ImGuiKey_C          },
@@ -147,6 +148,7 @@ namespace gol::StyleLoader
 		{ "step",        GameAction::Step       },
 		{ "resize",      GameAction::Resize     },
 					     					    
+		{ "deselect",    GameAction::Deselect   },
 		{ "delete",      GameAction::Delete     },
 		{ "copy",        GameAction::Copy       },
 		{ "cut",         GameAction::Cut        },
