@@ -145,6 +145,12 @@ gol::Rect gol::SimulationEditor::ViewportBounds() const
     return WindowBounds();
 }
 
+void gol::SimulationEditor::RemoveSelection()
+{
+    m_AnchorSelection = std::nullopt;
+    m_SentinelSelection = std::nullopt;
+}
+
 void gol::SimulationEditor::CopySelection(bool cut) {
     if (!m_AnchorSelection)
         return;
@@ -154,10 +160,7 @@ void gol::SimulationEditor::CopySelection(bool cut) {
         )
     );
     if (!cut)
-    {
-        m_AnchorSelection = std::nullopt;
-        m_SentinelSelection = std::nullopt;
-    }
+        RemoveSelection();
 }
 
 void gol::SimulationEditor::CutSelection()
@@ -166,8 +169,7 @@ void gol::SimulationEditor::CutSelection()
         return;
     CopySelection(true);
     m_Grid.ClearRegion(SelectionBounds());
-    m_AnchorSelection = std::nullopt;
-    m_SentinelSelection = std::nullopt;
+    RemoveSelection();
 }
 
 void gol::SimulationEditor::PasteSelection()
@@ -226,8 +228,7 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
     {
     using enum GameAction;
     case Start:
-        m_AnchorSelection = std::nullopt;
-        m_SentinelSelection = std::nullopt;
+        RemoveSelection();
         m_InitialGrid = m_Grid;
         return GameState::Simulation;
     case Clear:
@@ -242,6 +243,7 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
     case Pause:
         return GameState::Paused;
     case Resume:
+        RemoveSelection();
         return GameState::Simulation;
     case Step:
         for (int32_t i = 0; i < *result.StepCount; i++)
@@ -265,8 +267,7 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
             m_Grid.ClearRegion(SelectionBounds());
         return result.State;
     case Deselect:
-		m_AnchorSelection = std::nullopt;
-        m_SentinelSelection = std::nullopt;
+        RemoveSelection();
         return result.State;
     case NudgeLeft:
         NudgeSelection({ -result.NudgeSize, 0 });

@@ -38,6 +38,7 @@ namespace gol
 		void UpdateViewport();
 		std::optional<Vec2> CursorGridPos();
 		
+		void RemoveSelection();
 		void CopySelection(bool cut = false);
 		void CutSelection();
 		void PasteSelection();
