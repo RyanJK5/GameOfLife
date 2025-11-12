@@ -20,7 +20,12 @@ namespace gol
 	{
 		std::unordered_map<GameAction, std::vector<KeyShortcut>> Shortcuts;
 
-		SelectionShortcuts(std::vector<ImGuiKeyChord> left, std::vector<ImGuiKeyChord> right, std::vector<ImGuiKeyChord> up, std::vector<ImGuiKeyChord> down)
+		SelectionShortcuts(
+			const std::vector<ImGuiKeyChord>& left, 
+			const std::vector<ImGuiKeyChord>& right, 
+			const std::vector<ImGuiKeyChord>& up, 
+			const std::vector<ImGuiKeyChord>& down
+		)
 			: Shortcuts({
 				{ GameAction::NudgeLeft,  left  | MapChordsToShortcuts },
 				{ GameAction::NudgeRight, right | MapChordsToShortcuts },

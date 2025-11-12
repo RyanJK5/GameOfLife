@@ -12,6 +12,7 @@ namespace gol
 	public:
 		KeyShortcut(ImGuiKeyChord shortcut, bool onRelease = true) : m_Shortcut(shortcut), m_OnRelease(onRelease), m_Down(false) { }
 
+		ImGuiKeyChord Shortcut() const { return m_Shortcut; }
 		bool Active();
 	private:
 		ImGuiKeyChord m_Shortcut;

@@ -4,16 +4,22 @@
 
 gol::SimulationControlResult gol::SelectionShortcuts::Update(GameState)
 {
-    auto result = GameAction::None;
+	SimulationControlResult result { .Action = GameAction::None, .NudgeSize = 1 };
+
     for (auto&& [action, actionShortcuts] : Shortcuts)
     {
         bool active = false;
         for (auto& shortcut : actionShortcuts)
-            active = shortcut.Active() || active;
-        if (active && result == GameAction::None)
-            result = action;
+        {
+            bool test = shortcut.Active();
+            if (test && ((shortcut.Shortcut() & ImGuiMod_Shift) != 0))
+                result.NudgeSize = 10;
+            active = test || active;
+        }
+        if (active && result.Action == GameAction::None)
+            result.Action = action;
     }
-    return { .Action = result };
+    return result;
 }
 
 gol::SimulationControl::SimulationControl(const StyleLoader::StyleInfo<ImVec4>& fileInfo)
@@ -40,6 +46,8 @@ void gol::SimulationControl::FillResults(SimulationControlResult& current, const
         current.StepCount = update.StepCount;
     if (!current.TickDelayMs)
         current.TickDelayMs = update.TickDelayMs;
+    if (current.NudgeSize == 0)
+		current.NudgeSize = update.NudgeSize;
 }
 
 gol::SimulationControlResult gol::SimulationControl::Update(GameState state)

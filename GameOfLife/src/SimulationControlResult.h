@@ -15,6 +15,7 @@ namespace gol
 		std::optional<int32_t> StepCount;
 		std::optional<Size2> NewDimensions;
 		std::optional<int32_t> TickDelayMs;
+		int32_t NudgeSize = 0;
 	};
 }
 

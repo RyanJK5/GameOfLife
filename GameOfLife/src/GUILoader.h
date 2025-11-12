@@ -100,6 +100,7 @@ namespace gol::StyleLoader
 
 	static const std::unordered_map<std::string_view, ImGuiKey> ShortcutDefinitions = {
 		{ "Ctrl",      ImGuiMod_Ctrl       },
+		{ "Shift",     ImGuiMod_Shift      },
 		{ "Enter",     ImGuiKey_Enter      },
 		{ "Space",     ImGuiKey_Space      },
 		{ "A",         ImGuiKey_A          },

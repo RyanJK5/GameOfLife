@@ -1,4 +1,5 @@
 #include "KeyShortcut.h"
+#include "Logging.h"
 
 bool gol::KeyShortcut::Active()
 {

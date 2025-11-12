@@ -13,10 +13,10 @@ shortcuts:
     cut: [Ctrl+X]
     paste: [Ctrl+V]
 
-    nudge_left: [Left]
-    nudge_right: [Right]
-    nudge_up: [Up]
-    nudge_down: [Down]
+    nudge_left: [Left, Shift+Left]
+    nudge_right: [Right, Shift+Right]
+    nudge_up: [Up, Shift+Up]
+    nudge_down: [Down, Shift+Down]
 colors:
     transparent: [0, 0, 0, 0]
     background: [0.1, 0.1, 0.1, 1]

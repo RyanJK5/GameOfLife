@@ -95,13 +95,11 @@ void gol::GameGrid::TranslateRegion(const Rect& region, Vec2 translation)
 	{
 		if (region.InBounds(*it))
 		{
-			newCells.push_back({ it->X + translation.X, it->Y + translation.Y });
+			newCells.push_back(*it + translation);
 			m_Data.erase(it++);
+			continue;
 		}
-		else
-		{
-			++it;
-		}
+		++it;
 	}
 	m_Data.insert_range(newCells);
 }

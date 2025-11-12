@@ -120,9 +120,7 @@ void gol::SimulationEditor::DisplaySimulation()
         Vec2 pos = m_AnchorSelection ? *m_AnchorSelection : *cursorPos;
         std::string text = std::format("({}, {})", pos.X, pos.Y);
         if (m_SentinelSelection != m_AnchorSelection)
-        {
             text += std::format(" X ({}, {})", m_SentinelSelection->X, m_SentinelSelection->Y);
-        }
         ImGui::SetCursorPosY(ImGui::GetContentRegionMax().y - ImGui::CalcTextSize(text.c_str()).y);
         ImGui::Text(text.c_str());
     }
@@ -267,16 +265,16 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
             m_Grid.ClearRegion(SelectionBounds());
         return result.State;
     case NudgeLeft:
-        NudgeSelection({ -1, 0 });
+        NudgeSelection({ -result.NudgeSize, 0 });
         return result.State;
     case NudgeRight:
-        NudgeSelection({ 1, 0 });
+        NudgeSelection({ result.NudgeSize, 0 });
         return result.State;
     case NudgeUp:
-        NudgeSelection({ 0, -1 });
+        NudgeSelection({ 0, -result.NudgeSize });
         return result.State;
     case NudgeDown:
-        NudgeSelection({ 0, 1 });
+        NudgeSelection({ 0, result.NudgeSize });
         return result.State;
     }
 
