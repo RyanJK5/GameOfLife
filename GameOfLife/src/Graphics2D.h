@@ -20,8 +20,10 @@ namespace gol
 
 		constexpr auto operator<=>(const GenericVec<T>&) const = default;
 
-		constexpr GenericVec operator+(GenericVec<T> other) const { return { X + other.X, Y + other.Y }; }
-		constexpr GenericVec operator-(GenericVec<T> other) const { return { X - other.X, Y - other.Y }; }
+		constexpr GenericVec<T> operator-() const { return { -X, -Y }; }
+
+		constexpr GenericVec<T> operator+(GenericVec<T> other) const { return { X + other.X, Y + other.Y }; }
+		constexpr GenericVec<T> operator-(GenericVec<T> other) const { return { X - other.X, Y - other.Y }; }
 
 		constexpr GenericVec<T>& operator+=(GenericVec<T> other) { X += other.X; Y += other.Y; return *this; }
 		constexpr GenericVec<T>& operator-=(GenericVec<T> other) { X -= other.X; Y -= other.Y; return *this; }
@@ -53,6 +55,7 @@ namespace gol
 		constexpr GenericVec<T> UpperRight() const { return { X + Width, Y }; }
 		constexpr GenericVec<T> LowerLeft() const { return { X, Y + Height }; }
 		constexpr GenericVec<T> LowerRight() const { return { X + Width, Y + Height }; }
+		constexpr GenericVec<T> Center() const { return { X + Width / 2, Y + Height / 2 }; }
 
 		constexpr GenericRect() : GenericRect(0, 0, 0, 0) { }
 		constexpr GenericRect(T x, T y, T width, T height) : X(x), Y(y), Width(width), Height(height) { }
@@ -112,6 +115,19 @@ namespace gol
 	using Size2 = GenericSize<int32_t>;
 
 	using Rect = GenericRect<int32_t>;
+
+	namespace Graphics2D
+	{
+		inline Vec2 Rotate(Vec2F center, Vec2 point, bool clockwise)
+		{
+			auto offset = Vec2F { static_cast<float>(point.X), static_cast<float>(point.Y) } - center;
+			auto rotated = clockwise
+				? Vec2F { -offset.Y,  offset.X }
+			: Vec2F { offset.Y, -offset.X };
+			auto result = rotated + Vec2F { center.Y, center.X };
+			return Vec2 { static_cast<int32_t>(result.X), static_cast<int32_t>(result.Y) };
+		};
+	}
 }
 
 #endif

@@ -38,8 +38,10 @@ namespace gol
 		GameGrid ExtractRegion(const Rect& region) const;
 		void ClearRegion(const Rect& region);
 		void InsertGrid(const GameGrid& grid, Vec2 pos);
+		void RotateGrid(bool clockwise = true);
 
 		std::optional<bool> Get(int32_t x, int32_t y) const;
+		std::optional<bool> Get(Vec2 pos) const;
 
 		constexpr const std::set<Vec2>& Data() const { return m_Data; }
 	private:

@@ -135,10 +135,31 @@ void gol::GameGrid::InsertGrid(const GameGrid& region, Vec2 pos)
 	}
 }
 
+void gol::GameGrid::RotateGrid(bool clockwise)
+{
+	auto center = Vec2F { static_cast<float>(m_Width / 2.f - 0.5f), static_cast<float>(m_Height / 2.f - 0.5f) };
+	std::set<Vec2> newSet;
+	for (auto&& cellPos : m_Data)
+	{
+		auto offset = Vec2F{ static_cast<float>(cellPos.X), static_cast<float>(cellPos.Y) } - center;
+		auto rotated = clockwise
+			? Vec2F{ -offset.Y,  offset.X }
+		: Vec2F{ offset.Y, -offset.X };
+		auto result = rotated + Vec2F { center.Y, center.X };
+		newSet.insert(Vec2 { static_cast<int32_t>(result.X), static_cast<int32_t>(result.Y) });
+	}
+	std::swap(m_Width, m_Height);
+	m_Data = newSet;
+}
+
 std::optional<bool> gol::GameGrid::Get(int32_t x, int32_t y) const
 {
-	if (!InBounds(x, y))
+	return Get({ x, y });
+}
+
+std::optional<bool> gol::GameGrid::Get(Vec2 pos) const
+{
+	if (!InBounds(pos))
 		return std::nullopt;
-	auto itr = m_Data.find({ x, y });
-	return itr != m_Data.end();
+	return m_Data.find(pos) != m_Data.end();
 }

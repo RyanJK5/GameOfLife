@@ -13,6 +13,9 @@ shortcuts:
     copy: [Ctrl+C]
     cut: [Ctrl+X]
     paste: [Ctrl+V]
+    rotate: [R]
+    undo: [Ctrl+Z]
+    redo: [Ctrl+Y, Ctrl+Shift+Z]
 
     nudge_left: [Left, Shift+Left]
     nudge_right: [Right, Shift+Right]

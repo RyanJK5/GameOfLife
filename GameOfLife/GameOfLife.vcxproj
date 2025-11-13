@@ -35,6 +35,7 @@
     <ClCompile Include="src\SimulationControl.cpp" />
     <ClCompile Include="src\SimulationEditor.cpp" />
     <ClCompile Include="src\StepWidget.cpp" />
+    <ClCompile Include="src\VersionManager.cpp" />
     <ClCompile Include="src\vendor\glm\detail\glm.cpp" />
     <ClCompile Include="src\vendor\glm\glm.cppm" />
     <ClCompile Include="src\vendor\imgui.cpp" />
@@ -74,6 +75,7 @@
     <ClInclude Include="src\SimulationControl.h" />
     <ClInclude Include="src\SimulationEditor.h" />
     <ClInclude Include="src\StepWidget.h" />
+    <ClInclude Include="src\VersionManager.h" />
     <ClInclude Include="src\vendor\glm\common.hpp" />
     <ClInclude Include="src\vendor\glm\detail\compute_common.hpp" />
     <ClInclude Include="src\vendor\glm\detail\compute_vector_decl.hpp" />

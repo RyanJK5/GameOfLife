@@ -148,11 +148,14 @@ namespace gol::StyleLoader
 		{ "step",        GameAction::Step       },
 		{ "resize",      GameAction::Resize     },
 					     					    
+		{ "rotate",      GameAction::Rotate     },
 		{ "deselect",    GameAction::Deselect   },
 		{ "delete",      GameAction::Delete     },
 		{ "copy",        GameAction::Copy       },
 		{ "cut",         GameAction::Cut        },
 		{ "paste",       GameAction::Paste      },
+		{ "undo",        GameAction::Undo       },
+		{ "redo",        GameAction::Redo       },
 
 		{ "nudge_left",  GameAction::NudgeLeft  },
 		{ "nudge_right", GameAction::NudgeRight },

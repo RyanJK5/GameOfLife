@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <bitset>
 
+#include "VersionManager.h"
 #include "SimulationControl.h"
 #include "GameGrid.h"
 #include "GraphicsHandler.h"
@@ -31,6 +32,8 @@ namespace gol
 		GameState SimulationUpdate(const GraphicsHandlerArgs& args);
 		GameState PaintUpdate(const GraphicsHandlerArgs& args);
 		GameState PauseUpdate(const GraphicsHandlerArgs& args);
+
+		void UpdateVersion(const SimulationControlResult& args);
 
 		void DisplaySimulation();
 
@@ -57,9 +60,11 @@ namespace gol
 		GameGrid m_InitialGrid;
 		std::optional<GameGrid> m_Selected;
 
+		VersionManager m_VersionManager;
+
 		GraphicsHandler m_Graphics;
 		RectF m_WindowBounds;
-		
+
 		std::optional<Vec2> m_AnchorSelection;
 		std::optional<Vec2> m_SentinelSelection;
 

@@ -90,6 +90,9 @@
     <ClCompile Include="src\EditorWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\VersionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="resources\shader\default.shader">
@@ -1070,6 +1073,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\EditorWidget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VersionManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

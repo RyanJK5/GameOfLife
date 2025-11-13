@@ -31,7 +31,12 @@ gol::SimulationControl::SimulationControl(const StyleLoader::StyleInfo<ImVec4>& 
         fileInfo.Shortcuts.at(GameAction::NudgeRight),
         fileInfo.Shortcuts.at(GameAction::NudgeUp),
         fileInfo.Shortcuts.at(GameAction::NudgeDown),
-        fileInfo.Shortcuts.at(GameAction::Deselect)
+        fileInfo.Shortcuts.at(GameAction::Deselect),
+        fileInfo.Shortcuts.at(GameAction::Rotate)
+    )
+    , m_VersionManager(
+        fileInfo.Shortcuts.at(GameAction::Undo),
+        fileInfo.Shortcuts.at(GameAction::Redo)
     )
     , m_ExecutionWidget(fileInfo.Shortcuts)
     , m_ResizeWidget(fileInfo.Shortcuts.at(GameAction::Resize))
@@ -60,6 +65,7 @@ gol::SimulationControlResult gol::SimulationControl::Update(GameState state)
 
     SimulationControlResult result { .State = state };
     
+    FillResults(result, m_VersionManager.Update(state));
     FillResults(result, m_ExecutionWidget.Update(state));
     FillResults(result, m_ResizeWidget.Update(state));
     FillResults(result, m_StepWidget.Update(state));

@@ -21,11 +21,14 @@ namespace gol
 		Step, 
 		Resize,
 		
+		Rotate,
 		Deselect,
 		Delete,
 		Copy,
 		Cut,
 		Paste,
+		Undo,
+		Redo,
 
 		NudgeLeft,
 		NudgeRight,

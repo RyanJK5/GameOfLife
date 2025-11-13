@@ -18,6 +18,7 @@ gol::GameState gol::SimulationEditor::Update(const SimulationControlResult& args
     UpdateDragState();
     m_Graphics.RescaleFrameBuffer(WindowBounds().Size());
     m_Graphics.ClearBackground(graphicsArgs);
+    
 
     if (args.TickDelayMs)
         m_TickDelayMs = *args.TickDelayMs;
@@ -65,7 +66,7 @@ gol::GameState gol::SimulationEditor::PaintUpdate(const GraphicsHandlerArgs& arg
 {
     m_Graphics.DrawGrid({ 0, 0 }, m_Grid.Data(), args);
     if (m_AnchorSelection != m_SentinelSelection && m_Selected)
-        m_Graphics.DrawGrid(std::min(*m_AnchorSelection, *m_SentinelSelection), m_Selected->Data(), args);
+        m_Graphics.DrawGrid(SelectionBounds().UpperLeft(), m_Selected->Data(), args);
 
     auto gridPos = CursorGridPos();
     if (m_AnchorSelection && m_SentinelSelection && (m_AnchorSelection != m_SentinelSelection))
@@ -152,7 +153,7 @@ gol::Rect gol::SimulationEditor::ViewportBounds() const
 void gol::SimulationEditor::RemoveSelection()
 {
     if (m_AnchorSelection != m_SentinelSelection && m_Selected)
-        m_Grid.InsertGrid(*m_Selected, *m_AnchorSelection);
+        m_Grid.InsertGrid(*m_Selected, SelectionBounds().UpperLeft());
     m_AnchorSelection   = std::nullopt;
     m_SentinelSelection = std::nullopt;
     m_Selected          = std::nullopt;
@@ -230,6 +231,30 @@ std::optional<gol::Vec2> gol::SimulationEditor::CursorGridPos()
     return result;
 }
 
+void gol::SimulationEditor::UpdateVersion(const SimulationControlResult& args)
+{
+    auto changedPositions = [this, args]()
+    {
+        switch (args.Action)
+        {
+        case GameAction::Undo: return m_VersionManager.Undo();
+        case GameAction::Redo: return m_VersionManager.Redo();
+        }
+        return std::optional<std::vector<Vec2>> {};
+    }();
+
+    if (!changedPositions)
+        return;
+
+    for (auto&& pos : *changedPositions)
+    {
+        auto result = m_Grid.Get(pos);
+        if (!result)
+            continue;
+        m_Grid.Set(pos.X, pos.Y, !(*result));
+    }
+}
+
 gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult& result)
 {
     switch (result.Action)
@@ -240,6 +265,7 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
         m_InitialGrid = m_Grid;
         return GameState::Simulation;
     case Clear:
+        RemoveSelection();
         m_Grid = GameGrid(m_Grid.Size());
         return GameState::Paint;
     case Reset:
@@ -289,6 +315,26 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
     case NudgeDown:
         NudgeSelection({ 0, result.NudgeSize });
         return result.State;
+    case Rotate:
+   //     if (m_Selected)
+   //     {
+   //         auto upperLeft = SelectionBounds().UpperLeft();
+   //         auto gridCenter = Vec2F
+   //         { 
+   //             static_cast<float>(upperLeft.X) + m_Selected->Width() / 2.f,
+   //             static_cast<float>(upperLeft.Y) + m_Selected->Height() / 2.f
+   //         };
+   //         m_AnchorSelection = Graphics2D::Rotate(gridCenter, SelectionBounds().LowerLeft(), true);
+			//m_SentinelSelection = *m_AnchorSelection + Vec2 { m_Selected->Height() - 1, m_Selected->Width() - 1 };
+			//m_Selected->RotateGrid();
+   //     }
+        return result.State;
+    case Undo:
+        UpdateVersion(result);
+        return result.State;
+    case Redo:
+		UpdateVersion(result);
+        return result.State;
     }
 
     throw std::exception("Cannot pass 'None' as action to UpdateState");
@@ -308,8 +354,10 @@ void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)
                 m_SentinelSelection = gridPos;
             }
             m_EditorMode = *m_Grid.Get(gridPos.X, gridPos.Y) ? EditorMode::Delete : EditorMode::Insert;
+            m_VersionManager.BeginChange();
         }
-
+        if (*m_Grid.Get(gridPos.X, gridPos.Y) != (m_EditorMode == EditorMode::Insert))
+			m_VersionManager.AddChange(gridPos);
         m_Grid.Set(gridPos.X, gridPos.Y, m_EditorMode == EditorMode::Insert);
         return;
     }
