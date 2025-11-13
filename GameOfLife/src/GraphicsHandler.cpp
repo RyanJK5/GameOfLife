@@ -112,31 +112,31 @@ void gol::GraphicsHandler::ClearBackground(const GraphicsHandlerArgs& args) cons
     {
         GL_DEBUG(glClearColor(0.f, 0.f, 0.f, 1.f));
         GL_DEBUG(glClear(GL_COLOR_BUFFER_BIT));
+        UnbindFrameBuffer();
+        return;
     }
-    else
-    {
-        GL_DEBUG(glEnable(GL_SCISSOR_TEST));
-    
-        GL_DEBUG(glScissor(0, 0, args.ViewportBounds.Width, args.ViewportBounds.Height));
-        GL_DEBUG(glClearColor(0.1f, 0.1f, 0.1f, 1));
-        GL_DEBUG(glClear(GL_COLOR_BUFFER_BIT));
-    
-        Size2F gridScreenDimensions = 
-        { 
-            args.GridSize.Width * SimulationEditor::DefaultCellWidth, 
-            args.GridSize.Height * SimulationEditor::DefaultCellHeight
-        };
-        auto origin = Camera.WorldToScreenPos({ 0, 0 }, args.ViewportBounds, gridScreenDimensions);
-        auto lowerRight = Camera.WorldToScreenPos({ gridScreenDimensions.Width, gridScreenDimensions.Height }, args.ViewportBounds, gridScreenDimensions);
-        GL_DEBUG(glScissor(
-            static_cast<int32_t>(origin.x), static_cast<int32_t>(origin.y),
-            static_cast<int32_t>(lowerRight.x - origin.x), static_cast<int32_t>(lowerRight.y - origin.y)
-        ));
-        GL_DEBUG(glClearColor(0.f, 0.f, 0.f, 1.f));
-        GL_DEBUG(glClear(GL_COLOR_BUFFER_BIT));
 
-        GL_DEBUG(glDisable(GL_SCISSOR_TEST));
-    }
+    GL_DEBUG(glEnable(GL_SCISSOR_TEST));
+    
+    GL_DEBUG(glScissor(0, 0, args.ViewportBounds.Width, args.ViewportBounds.Height));
+    GL_DEBUG(glClearColor(0.1f, 0.1f, 0.1f, 1));
+    GL_DEBUG(glClear(GL_COLOR_BUFFER_BIT));
+    
+    Size2F gridScreenDimensions = 
+    { 
+        args.GridSize.Width * SimulationEditor::DefaultCellWidth, 
+        args.GridSize.Height * SimulationEditor::DefaultCellHeight
+    };
+    auto origin = Camera.WorldToScreenPos({ 0, 0 }, args.ViewportBounds, gridScreenDimensions);
+    auto lowerRight = Camera.WorldToScreenPos({ gridScreenDimensions.Width, gridScreenDimensions.Height }, args.ViewportBounds, gridScreenDimensions);
+    GL_DEBUG(glScissor(
+        static_cast<int32_t>(origin.x), static_cast<int32_t>(origin.y),
+        static_cast<int32_t>(lowerRight.x - origin.x), static_cast<int32_t>(lowerRight.y - origin.y)
+    ));
+    GL_DEBUG(glClearColor(0.f, 0.f, 0.f, 1.f));
+    GL_DEBUG(glClear(GL_COLOR_BUFFER_BIT));
+
+    GL_DEBUG(glDisable(GL_SCISSOR_TEST));
 
     UnbindFrameBuffer();
 }
