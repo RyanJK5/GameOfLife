@@ -12,7 +12,7 @@
 	#define GL_DEBUG(statement)\
 		while (glGetError());\
 		statement;\
-		gol::LogGLErrors(#statement)
+		gol::LogGLErrors()
 	#define ERROR(str, ...) gol::Log(gol::LogCode::Error, std::source_location::current(), str, __VA_ARGS__)
 	#define WARNING(str, ...) gol::Log(gol::LogCode::Error, std::source_location::current(), str, __VA_ARGS__)
 	#define INFO(str, ...) gol::Log(gol::LogCode::Info, std::source_location::current(), str, __VA_ARGS__)
@@ -37,7 +37,7 @@ namespace gol
 
 	namespace logimpl
 	{
-		constexpr std::string_view StringRepresentation(gol::LogCode code);
+		constexpr std::string StringRepresentation(gol::LogCode code);
 
 		std::string SimplifyFileName(const std::string& fileName);
 
@@ -61,7 +61,7 @@ namespace gol
 			std::println(str, std::forward<Args>(args)...);
 	}
 
-	void LogGLErrors(const std::string& call, const std::source_location& location = std::source_location::current());
+	void LogGLErrors(const std::source_location& location = std::source_location::current());
 }
 
 #endif

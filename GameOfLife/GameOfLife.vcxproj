@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Dependencies\ImGUI\imgui\imgui.cpp" />
-    <ClCompile Include="..\Dependencies\ImGUI\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\Dependencies\ImGUI\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\Dependencies\ImGUI\imgui\imgui_impl_glfw.cpp" />
     <ClCompile Include="..\Dependencies\ImGUI\imgui\imgui_impl_opengl3.cpp" />

@@ -83,7 +83,7 @@ std::string gol::logimpl::SimplifyFunctionName(const std::string& funcName)
 	return result;
 }
 
-constexpr std::string_view gol::logimpl::StringRepresentation(gol::LogCode code)
+constexpr std::string gol::logimpl::StringRepresentation(gol::LogCode code)
 {
 	switch (code)
 	{
@@ -99,7 +99,7 @@ constexpr std::string_view gol::logimpl::StringRepresentation(gol::LogCode code)
 	return "";
 }
 
-void gol::LogGLErrors(const std::string& function, const std::source_location& location) 
+void gol::LogGLErrors(const std::source_location& location) 
 {
 	while (GLenum error = glGetError()) 
 	{
