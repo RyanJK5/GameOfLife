@@ -82,13 +82,14 @@ gol::GameState gol::SimulationEditor::SimulationUpdate(const GraphicsHandlerArgs
 
 gol::GameState gol::SimulationEditor::PaintUpdate(const GraphicsHandlerArgs& args)
 {
-    m_Graphics.DrawGrid({ 0, 0 }, m_Grid.Data(), args);
-    if (m_AnchorSelection != m_SentinelSelection && m_Selected)
-        m_Graphics.DrawGrid(SelectionBounds().UpperLeft(), m_Selected->Data(), args);
-
     auto gridPos = CursorGridPos();
     if (m_AnchorSelection && m_SentinelSelection && (m_AnchorSelection != m_SentinelSelection))
         m_Graphics.DrawSelection(SelectionBounds(), args);
+    
+    m_Graphics.DrawGrid({ 0, 0 }, m_Grid.Data(), args);
+    if (m_AnchorSelection != m_SentinelSelection && m_Selected)
+        m_Graphics.DrawGrid(SelectionBounds().UpperLeft(), m_Selected->Data(), args);
+    
     if (gridPos)
     {
         if (m_AnchorSelection && m_SentinelSelection)
@@ -248,6 +249,23 @@ void gol::SimulationEditor::DeleteSelection(bool cut)
 	m_SentinelSelection = std::nullopt;
 }
 
+gol::Vec2 gol::SimulationEditor::RotatePoint(Vec2F center, Vec2F point, bool clockwise)
+{
+    auto offset = Vec2F { static_cast<float>(point.X), static_cast<float>(point.Y) } - center;
+    auto rotated = clockwise
+        ? Vec2F { -offset.Y,  offset.X }
+    : Vec2F{ offset.Y, -offset.X };
+    auto result = rotated + center;
+    
+    auto retValue = Vec2
+    {
+        static_cast<int32_t>(m_RotationParity  ? std::floor(result.X) : std::ceil(result.X)),
+        static_cast<int32_t>(!m_RotationParity ? std::floor(result.Y) : std::ceil(result.Y))
+    };
+    m_RotationParity = !m_RotationParity;
+    return retValue;
+}
+
 void gol::SimulationEditor::RotateSelection(bool clockwise, bool updateVersion)
 {
     if (!m_Selected)
@@ -263,9 +281,10 @@ void gol::SimulationEditor::RotateSelection(bool clockwise, bool updateVersion)
         static_cast<float>(upperLeft.Y) + height / 2.f
     };
 
-    m_AnchorSelection = Graphics2D::Rotate(gridCenter, clockwise ? SelectionBounds().LowerLeft() : SelectionBounds().UpperRight(), clockwise);
+    auto oldCorner = Vec2F { clockwise ? SelectionBounds().LowerLeft() : SelectionBounds().UpperRight() };
+    m_AnchorSelection = RotatePoint(gridCenter, oldCorner, clockwise);
     m_SentinelSelection = *m_AnchorSelection + Vec2{ m_Selected->Height() - 1, m_Selected->Width() - 1 };
-    m_Selected->RotateGrid();
+    m_Selected->RotateGrid(clockwise);
 
     if (updateVersion)
         m_VersionManager.AddSelectionChange

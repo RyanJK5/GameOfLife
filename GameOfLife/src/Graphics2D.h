@@ -70,6 +70,7 @@ namespace gol
 	struct Vec2F : public GenericVec<float>
 	{
 		constexpr Vec2F() : GenericVec() { }
+		constexpr explicit Vec2F(GenericVec<int32_t> vec) : GenericVec(static_cast<float>(vec.X), static_cast<float>(vec.Y)) { }
 		constexpr Vec2F(ImVec2 vec) : GenericVec(vec.x, vec.y) { }
 		constexpr Vec2F(glm::vec2 vec) : GenericVec(vec.x, vec.y) { }
 		constexpr Vec2F(float x, float y) : GenericVec(x, y) { }
@@ -115,19 +116,6 @@ namespace gol
 	using Size2 = GenericSize<int32_t>;
 
 	using Rect = GenericRect<int32_t>;
-
-	namespace Graphics2D
-	{
-		inline Vec2 Rotate(Vec2F center, Vec2 point, bool clockwise)
-		{
-			auto offset = Vec2F { static_cast<float>(point.X), static_cast<float>(point.Y) } - center;
-			auto rotated = clockwise
-				? Vec2F { -offset.Y,  offset.X }
-			: Vec2F { offset.Y, -offset.X };
-			auto result = rotated + center;
-			return Vec2 { static_cast<int32_t>(result.X), static_cast<int32_t>(result.Y) };
-		};
-	}
 }
 
 #endif

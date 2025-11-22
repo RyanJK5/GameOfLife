@@ -47,7 +47,9 @@ namespace gol
 		void PasteSelection();
 		void DeleteSelection(bool cut);
 
+		Vec2 RotatePoint(Vec2F center, Vec2F point, bool clockwise);
 		void RotateSelection(bool clockwise = true, bool updateVersion = true);
+		
 		void NudgeSelection(GameAction nudgeType, Vec2 direction, bool updateVersion = true);
 		Rect SelectionBounds() const;
 		void SetSelectionBounds(const Rect& bounds);
@@ -71,6 +73,7 @@ namespace gol
 		std::optional<Vec2> m_AnchorSelection;
 		std::optional<Vec2> m_SentinelSelection;
 
+		bool m_RotationParity = false;
 		glm::vec2 m_DeltaLast = { 0, 0 };
 		double m_TickDelayMs = DefaultTickDelayMs;
 		EditorMode m_EditorMode = EditorMode::None;
