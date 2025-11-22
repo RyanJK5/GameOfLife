@@ -1,14 +1,13 @@
 #ifndef __ShaderManager_h__
 #define __ShaderManager_h__
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-
-#include <unordered_map>
-#include <string>
-#include <optional>
+#include <cstdint>
 #include <filesystem>
+#include "glm/fwd.hpp"
+#include <optional>
+#include <string_view>
+#include <unordered_map>
+#include <utility>
 
 namespace gol
 {

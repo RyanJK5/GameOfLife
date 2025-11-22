@@ -1,7 +1,10 @@
-#include "GameActionButton.h"
-
 #include "imgui.h"
 #include <imgui_internal.h>
+#include <span>
+#include <string_view>
+
+#include "GameActionButton.h"
+#include "GameEnums.h"
 
 gol::GameActionButton::GameActionButton(
 	std::string_view label,

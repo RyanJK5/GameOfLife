@@ -1,4 +1,9 @@
+#include <algorithm>
+#include "imgui.h"
+
 #include "DelayWidget.h"
+#include "GameEnums.h"
+#include "SimulationControlResult.h"
 
 gol::SimulationControlResult gol::DelayWidget::Update(GameState)
 {

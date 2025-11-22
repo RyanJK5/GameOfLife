@@ -1,8 +1,17 @@
+#include <cstdint>
 #include <fstream>
+#include <filesystem>
+#include <format>
+#include <GL/glew.h>
+#include "glm/glm.hpp"
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
 
-#include "ShaderManager.h"
-#include "Logging.h"
 #include "GLException.h"
+#include "Logging.h"
+#include "ShaderManager.h"
 
 gol::ShaderManager::ShaderManager(const std::filesystem::path& shaderFilePath)
 {

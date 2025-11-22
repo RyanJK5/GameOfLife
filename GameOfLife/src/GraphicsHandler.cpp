@@ -1,13 +1,16 @@
+#include <cstdint>
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
+#include <filesystem>
+#include <set>
+#include <utility>
+#include <vector>
 
-#include "SimulationEditor.h"
+#include "GLException.h"
+#include "Graphics2D.h"
 #include "GraphicsHandler.h"
 #include "Logging.h"
-#include "GLException.h"
+#include "ShaderManager.h"
+#include "SimulationEditor.h"
 
 gol::GraphicsHandler::GraphicsHandler(const std::filesystem::path& shaderFilePath, int32_t windowWidth, int32_t windowHeight)
     : m_Shader(shaderFilePath)

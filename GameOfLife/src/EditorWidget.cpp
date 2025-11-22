@@ -1,4 +1,8 @@
+#include "imgui.h"
+
 #include "EditorWidget.h"
+#include "GameEnums.h"
+#include "SimulationControlResult.h"
 
 gol::SimulationControlResult gol::EditorWidget::Update(GameState state)
 {

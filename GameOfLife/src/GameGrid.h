@@ -1,6 +1,7 @@
 #ifndef __GameGrid_h__
 #define __GameGrid_h__
 
+#include <cstdint>
 #include <vector>
 #include <set>
 #include <optional>

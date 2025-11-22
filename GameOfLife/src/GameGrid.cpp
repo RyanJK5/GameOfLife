@@ -1,10 +1,12 @@
-#include "GameGrid.h"
-#include "Logging.h"
-
-#include <ranges>
-#include <algorithm>
-#include <iostream>
+#include <cstdint>
 #include <map>
+#include <optional>
+#include <set>
+#include <utility>
+#include <vector>
+
+#include "GameGrid.h"
+#include "Graphics2D.h"
 
 gol::GameGrid::GameGrid(int32_t width, int32_t height)
 	: m_Width(width), m_Height(height)

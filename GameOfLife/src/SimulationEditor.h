@@ -1,19 +1,16 @@
 #ifndef __SimulationEditor_h__
 #define __SimulationEditor_h__
 
-#include <vector>
+#include "glm/glm.hpp"
 #include <optional>
-#include <functional>
-#include <unordered_map>
-#include <bitset>
 
-#include "SelectionManager.h"
-#include "VersionManager.h"
-#include "SimulationControl.h"
+#include "GameEnums.h"
 #include "GameGrid.h"
 #include "GraphicsHandler.h"
 #include "Graphics2D.h"
-#include "GameActionButton.h"
+#include "SelectionManager.h"
+#include "SimulationControlResult.h"
+#include "VersionManager.h"
 
 namespace gol
 {

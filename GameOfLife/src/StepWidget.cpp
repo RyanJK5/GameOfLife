@@ -1,3 +1,8 @@
+#include "imgui.h"
+#include <utility>
+
+#include "GameEnums.h"
+#include "SimulationControlResult.h"
 #include "StepWidget.h"
 
 gol::SimulationControlResult gol::StepWidget::Update(GameState state)

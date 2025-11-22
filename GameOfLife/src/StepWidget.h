@@ -1,8 +1,14 @@
 #ifndef __StepWidget_h__
 #define __StepWidget_h__
 
-#include "SimulationControlResult.h"
+#include <cstdint>
+#include "imgui.h"
+#include <span>
+
 #include "GameActionButton.h"
+#include "GameEnums.h"
+#include "Graphics2D.h"
+#include "SimulationControlResult.h"
 
 namespace gol
 {

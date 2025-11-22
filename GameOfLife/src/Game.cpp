@@ -1,16 +1,16 @@
+#include <cstdint>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
-#include "GLException.h"
-#include "Logging.h"
-#include "GUILoader.h"
-#include "Game.h"
-#include <cstdint>
 #include <filesystem>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "Game.h"
+#include "GLException.h"
+#include "GUILoader.h"
+#include "Logging.h"
  
 gol::OpenGLWindow::OpenGLWindow(int32_t width, int32_t height)
     : Bounds(0, 0, width, height)

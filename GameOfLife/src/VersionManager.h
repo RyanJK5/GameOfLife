@@ -1,18 +1,18 @@
 #ifndef __VersionManager_h__
 #define __VersionManager_h__
 
-#include <set>
-#include <vector>
-#include <stack>
-#include <ranges>
+#include "imgui.h"
 #include <optional>
+#include <ranges>
+#include <set>
 #include <span>
+#include <stack>
+#include <vector>
 
-#include "SimulationControlResult.h"
-#include "KeyShortcut.h"
 #include "GameEnums.h"
 #include "Graphics2D.h"
-#include "imgui.h"
+#include "KeyShortcut.h"
+#include "SimulationControlResult.h"
 
 namespace gol
 {

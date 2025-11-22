@@ -1,8 +1,8 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
 #include <array>
-#include <print>
+#include <GL/glew.h>
+#include <source_location>
+#include <string>
+#include <string_view>
 
 #include "Logging.h"
 

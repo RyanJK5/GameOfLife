@@ -1,8 +1,16 @@
 #ifndef __EditorWidget_h__
 #define __EditorWidget_h__
 
-#include "SimulationControlResult.h"
+#include "imgui.h"
+#include <span>
+#include <unordered_map>
+#include <vector>
+
 #include "GameActionButton.h"
+#include "GameEnums.h"
+#include "Graphics2D.h"
+#include "SimulationControlResult.h"
+
 
 namespace gol
 {

@@ -1,27 +1,23 @@
-#include <exception>
-#include <cmath>
-#include <format>
-#include <utility>
-
-#include "RLEEncoder.h"
-#include "SimulationEditor.h"
-#include <algorithm>
 #include <cstdint>
+#include <exception>
 #include <filesystem>
-#include <optional>
-#include <string>
+#include <format>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "glm/glm.hpp"
+#include "imgui.h"
+#include <optional>
+#include <string>
+#include <utility>
+
 #include "GameEnums.h"
 #include "GameGrid.h"
-#include "Graphics2D.h"
 #include "GraphicsHandler.h"
+#include "Graphics2D.h"
 #include "SimulationControlResult.h"
-#include "glm/fwd.hpp"
-#include "imgui.h"
+#include "SimulationEditor.h"
 #include "VersionManager.h"
-#include <vector>
-#include <array>
+#include "Logging.h"
 
 gol::SimulationEditor::SimulationEditor(Size2 windowSize, Size2 gridSize)
     : m_Grid(gridSize)
@@ -37,7 +33,6 @@ gol::GameState gol::SimulationEditor::Update(const SimulationControlResult& args
     m_Graphics.RescaleFrameBuffer(WindowBounds().Size());
     m_Graphics.ClearBackground(graphicsArgs);
     
-
     if (args.TickDelayMs)
         m_TickDelayMs = *args.TickDelayMs;
 
@@ -45,7 +40,7 @@ gol::GameState gol::SimulationEditor::Update(const SimulationControlResult& args
         ? args.State 
         : UpdateState(args);
 
-    state = [&]()
+    state = [this, state, &graphicsArgs]()
     {
         switch (state)
         {
@@ -68,10 +63,10 @@ gol::GameState gol::SimulationEditor::Update(const SimulationControlResult& args
 
 gol::GameState gol::SimulationEditor::SimulationUpdate(const GraphicsHandlerArgs& args)
 {
-    const bool success = glfwGetTime() * 1000 >= m_TickDelayMs;
+    GL_DEBUG(const bool success = glfwGetTime() * 1000 >= m_TickDelayMs);
     if (success)
     {
-        glfwSetTime(0);
+        GL_DEBUG(glfwSetTime(0));
         m_Grid.Update();
         if (m_Grid.Dead() && !m_SelectionManager.GridAlive())
             return GameState::Empty;

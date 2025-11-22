@@ -1,13 +1,14 @@
 #ifndef __DrawManager_h__
 #define __DrawManager_h__
 
-#include <vector>
+#include <cstdint>
 #include <filesystem>
+#include <set>
+#include <vector>
 
 #include "Camera.h"
 #include "Graphics2D.h"
 #include "ShaderManager.h"
-#include "Logging.h"
 
 namespace gol
 {

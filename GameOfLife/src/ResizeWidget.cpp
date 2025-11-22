@@ -1,5 +1,10 @@
-#include "ResizeWidget.h"
+#include <cstdint>
+#include "imgui.h"
+#include <utility>
 
+#include "GameEnums.h"
+#include "ResizeWidget.h"
+#include "SimulationControlResult.h"
 
 gol::SimulationControlResult gol::ResizeWidget::Update(GameState state)
 {

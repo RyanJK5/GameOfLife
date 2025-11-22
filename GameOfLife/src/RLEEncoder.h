@@ -2,12 +2,12 @@
 #define __RLEEncoder_h__
 
 #include <concepts>
-
-#include "GameGrid.h"
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
 #include <vector>
+
+#include "GameGrid.h"
 #include "Graphics2D.h"
 
 namespace gol::RLEEncoder

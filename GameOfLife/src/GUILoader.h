@@ -1,18 +1,24 @@
 #ifndef __StyleLoader_h__
 #define __StyleLoader_h__
 
-#include <iostream>
-#include <unordered_map>
-#include <filesystem>
+#include <algorithm>
+#include <concepts>
 #include <cctype>
-#include <functional>
-#include <variant>
-#include <fstream>
+#include <cstdint>
+#include <cstdlib>
 #include <expected>
 #include <exception>
-#include <concepts>
-
+#include <filesystem>
+#include <fstream>
+#include <functional>
 #include "imgui.h"
+#include <iterator>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "GameEnums.h"
 
 namespace gol::StyleLoader

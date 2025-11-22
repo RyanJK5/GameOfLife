@@ -1,14 +1,15 @@
 #ifndef __GameActionButton_h__
 #define __GameActionButton_h__
 
+#include <cstdint>
+#include "imgui.h"
 #include <string_view>
 #include <string>
 #include <span>
 #include <vector>
-#include <functional>
 
-#include "Graphics2D.h"
 #include "GameEnums.h"
+#include "Graphics2D.h"
 #include "KeyShortcut.h"
 
 namespace gol

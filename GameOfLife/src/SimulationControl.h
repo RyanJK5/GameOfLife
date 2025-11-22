@@ -1,19 +1,22 @@
 #ifndef __SimulationControl_h__
 #define __SimulationControl_h__
 
-#include <memory>
+#include <cstdint>
+#include "imgui.h"
+#include <ranges>
+#include <unordered_map>
 #include <vector>
 
-#include <ranges>
-
-#include "VersionManager.h"
-#include "GameEnums.h"
-#include "EditorWidget.h"
-#include "GUILoader.h"
-#include "StepWidget.h"
-#include "ResizeWidget.h"
-#include "ExecutionWidget.h"
 #include "DelayWidget.h"
+#include "EditorWidget.h"
+#include "ExecutionWidget.h"
+#include "GameEnums.h"
+#include "GUILoader.h"
+#include "KeyShortcut.h"
+#include "ResizeWidget.h"
+#include "SimulationControlResult.h"
+#include "StepWidget.h"
+#include "VersionManager.h"
 
 namespace gol
 {

@@ -2,8 +2,11 @@
 #define __Logger_h__
 
 #include <format>
-#include <source_location>
+#include <GL/glew.h>
 #include <print>
+#include <source_location>
+#include <string>
+#include <string_view>
 
 #ifdef _DEBUG
 	#define GL_DEBUG(statement)\

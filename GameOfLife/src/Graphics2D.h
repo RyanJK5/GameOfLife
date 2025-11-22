@@ -3,9 +3,8 @@
 
 #include <cstdint>
 #include <concepts>
-#include <glm/glm.hpp>
-
 #include "imgui.h"
+#include "glm/glm.hpp"
 
 namespace gol
 {

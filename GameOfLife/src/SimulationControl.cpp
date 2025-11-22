@@ -1,6 +1,9 @@
-#include "SimulationControl.h"
+#include "imgui.h"
 
-#include "Logging.h"
+#include "GameEnums.h"
+#include "GUILoader.h"
+#include "SimulationControl.h"
+#include "SimulationControlResult.h"
 
 gol::SimulationControlResult gol::SelectionShortcuts::Update(GameState state)
 {

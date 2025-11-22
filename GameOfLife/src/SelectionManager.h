@@ -1,13 +1,14 @@
 #ifndef __SelectionManager_h__
 #define __SelectionManager_h__
 
-#include "GameGrid.h"
-#include "VersionManager.h"
-#include <optional>
-#include "Graphics2D.h"
 #include <cstdint>
+#include <optional>
 #include <set>
+
 #include "GameEnums.h"
+#include "GameGrid.h"
+#include "Graphics2D.h"
+#include "VersionManager.h"
 
 namespace gol
 {

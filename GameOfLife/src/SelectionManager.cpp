@@ -1,16 +1,16 @@
-#include "SelectionManager.h"
-#include "RLEEncoder.h"
-#include <optional>
-#include "GameEnums.h"
-#include "GameGrid.h"
-#include "VersionManager.h"
-#include <cstdint>
-#include "imgui.h"
 #include <algorithm>
 #include <cmath>
-#include "Graphics2D.h"
-#include <cassert>
+#include <cstdint>
+#include "imgui.h"
+#include <optional>
 #include <set>
+
+#include "GameEnums.h"
+#include "GameGrid.h"
+#include "Graphics2D.h"
+#include "RLEEncoder.h"
+#include "SelectionManager.h"
+#include "VersionManager.h"
 
 gol::SelectionUpdateResult gol::SelectionManager::UpdateSelectionArea(GameGrid& grid, Vec2 gridPos)
 {

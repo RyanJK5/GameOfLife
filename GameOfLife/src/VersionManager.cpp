@@ -1,12 +1,13 @@
-#include "VersionManager.h"
 #include <optional>
 #include <set>
 #include <span>
 #include <utility>
+
 #include "GameEnums.h"
 #include "Graphics2D.h"
 #include "KeyShortcut.h"
 #include "SimulationControlResult.h"
+#include "VersionManager.h"
 
 gol::SimulationControlResult gol::VersionShortcutManager::Update(GameState state)
 {

@@ -1,5 +1,9 @@
+#include <algorithm>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 #include "Camera.h"
-#include "Logging.h"
+#include "Graphics2D.h"
 
 void gol::Camera::ZoomBy(Vec2F screenPos, const RectF& viewBounds, float zoom)
 {

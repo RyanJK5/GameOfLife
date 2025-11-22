@@ -1,6 +1,7 @@
 #ifndef __ActionWidget_h__
 #define __ActionWidget_h__
 
+#include <cstdint>
 #include <optional>
 
 #include "Graphics2D.h"

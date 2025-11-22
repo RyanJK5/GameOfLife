@@ -1,7 +1,12 @@
 #ifndef __ResizeWidget_h__
 #define __ResizeWidget_h__
 
+#include "imgui.h"
+#include <span>
+
 #include "GameActionButton.h"
+#include "GameEnums.h"
+#include "Graphics2D.h"
 #include "SimulationControlResult.h"
 
 namespace gol

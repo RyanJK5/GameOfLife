@@ -1,15 +1,15 @@
 #ifndef __Game_h__
 #define __Game_h__
 
-#include <GL/glew.h>
+#include <cstdint>
+#include <filesystem>
+#include "imgui.h"
 #include <GLFW/glfw3.h>
 
-#include <optional>
-#include <memory>
-
 #include "GameEnums.h"
-#include "SimulationEditor.h"
+#include "Graphics2D.h"
 #include "SimulationControl.h"
+#include "SimulationEditor.h"
 
 template <>
 struct std::default_delete<GLFWwindow>
