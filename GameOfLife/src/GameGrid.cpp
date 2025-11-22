@@ -104,7 +104,7 @@ void gol::GameGrid::TranslateRegion(const Rect& region, Vec2 translation)
 	m_Data.insert_range(newCells);
 }
 
-gol::GameGrid gol::GameGrid::ExtractRegion(const Rect& region) const
+gol::GameGrid gol::GameGrid::SubRegion(const Rect& region) const
 {
 	auto result = GameGrid { region.Width, region.Height };
 	for (auto&& pos : m_Data)
@@ -118,21 +118,44 @@ gol::GameGrid gol::GameGrid::ExtractRegion(const Rect& region) const
 	return result;
 }
 
+std::set<gol::Vec2> gol::GameGrid::ReadRegion(const Rect& region) const
+{
+	std::set<Vec2> result;
+	for (auto&& pos : m_Data)
+	{
+		if (region.InBounds(pos))
+			result.insert(pos);
+	}
+	return result;
+}
+
 
 void gol::GameGrid::ClearRegion(const Rect& region)
 {
 	m_Population -= std::erase_if(m_Data, [region](const Vec2& pos) { return region.InBounds(pos); });
 }
 
-void gol::GameGrid::InsertGrid(const GameGrid& region, Vec2 pos)
+void gol::GameGrid::ClearData(const std::vector<Vec2>& data, Vec2 offset)
 {
+	for (auto& vec : data)
+	{
+		m_Population -= m_Data.erase({ vec.X + offset.X, vec.Y + offset.Y });
+	}
+}
+
+std::set<gol::Vec2> gol::GameGrid::InsertGrid(const GameGrid& region, Vec2 pos)
+{
+	std::set<Vec2> result {};
 	for (auto&& cell : region.m_Data)
 	{
-		if (m_Data.find({pos.X + cell.X, pos.Y + cell.Y}) != m_Data.end())
+		Vec2 offsetPos = { pos.X + cell.X, pos.Y + cell.Y };
+		if (m_Data.find(offsetPos) != m_Data.end())
 			continue;
-		m_Data.insert({pos.X + cell.X, pos.Y + cell.Y});
+		m_Data.insert(offsetPos);
+		result.insert(offsetPos);
 		m_Population++;
 	}
+	return result;
 }
 
 void gol::GameGrid::RotateGrid(bool clockwise)
@@ -141,10 +164,10 @@ void gol::GameGrid::RotateGrid(bool clockwise)
 	std::set<Vec2> newSet;
 	for (auto&& cellPos : m_Data)
 	{
-		auto offset = Vec2F{ static_cast<float>(cellPos.X), static_cast<float>(cellPos.Y) } - center;
+		auto offset = Vec2F { static_cast<float>(cellPos.X), static_cast<float>(cellPos.Y) } - center;
 		auto rotated = clockwise
-			? Vec2F{ -offset.Y,  offset.X }
-		: Vec2F{ offset.Y, -offset.X };
+			? Vec2F { -offset.Y,  offset.X }
+			: Vec2F { offset.Y, -offset.X };
 		auto result = rotated + Vec2F { center.Y, center.X };
 		newSet.insert(Vec2 { static_cast<int32_t>(result.X), static_cast<int32_t>(result.Y) });
 	}

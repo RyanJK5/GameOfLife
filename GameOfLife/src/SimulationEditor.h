@@ -34,6 +34,7 @@ namespace gol
 		GameState PauseUpdate(const GraphicsHandlerArgs& args);
 
 		void UpdateVersion(const SimulationControlResult& args);
+		void RestoreGridVersion(GameAction undoRedo, GameGrid& grid, const VersionChange& versionChanges);
 
 		void DisplaySimulation();
 
@@ -41,13 +42,15 @@ namespace gol
 		void UpdateViewport();
 		std::optional<Vec2> CursorGridPos();
 		
-		void RemoveSelection();
-		void CopySelection(bool cut = false);
-		void CutSelection();
+		void RemoveSelection(bool updateVersion = true);
+		void CopySelection();
 		void PasteSelection();
+		void DeleteSelection(bool cut);
 
-		void NudgeSelection(Vec2 direction);
+		void RotateSelection(bool clockwise = true, bool updateVersion = true);
+		void NudgeSelection(GameAction nudgeType, Vec2 direction, bool updateVersion = true);
 		Rect SelectionBounds() const;
+		void SetSelectionBounds(const Rect& bounds);
 
 		void UpdateMouseState(Vec2 gridPos);
 		bool UpdateSelectionArea(Vec2 gridPos);

@@ -1,6 +1,7 @@
 #ifndef __VersionManager_h__
 #define __VersionManager_h__
 
+#include <set>
 #include <vector>
 #include <stack>
 #include <ranges>
@@ -11,9 +12,21 @@
 #include "KeyShortcut.h"
 #include "GameEnums.h"
 #include "Graphics2D.h"
+#include "imgui.h"
 
 namespace gol
 {
+	struct VersionChange
+	{
+		GameAction Action = GameAction::None;
+		std::optional<Rect> SelectionBounds;
+		std::set<Vec2> CellsInserted;
+		std::set<Vec2> CellsDeleted;
+		Vec2 NudgeTranslation;
+
+		bool InsertedIntoSelection() const { return SelectionBounds.has_value(); }
+	};
+
 	class VersionShortcutManager
 	{
 	public:
@@ -33,14 +46,22 @@ namespace gol
 	class VersionManager
 	{
 	public:
-		void BeginChange();
-		void AddChange(Vec2 pos);
+		void BeginPaintChange(Vec2 pos, bool insert);
+		void AddPaintChange(Vec2 pos);
+		void AddBatchChange(const std::set<Vec2>& positions, GameAction action, bool insert);
 
-		std::optional<std::vector<Vec2>> Undo();
-		std::optional<std::vector<Vec2>> Redo();
+		void AddSelectionChange(const VersionChange& change);
+		const VersionChange* PastChange() const;
+		
+		void AddActionsChange(GameAction action);
+
+		std::optional<VersionChange> Undo();
+		std::optional<VersionChange> Redo();
 	private:
-		std::stack<std::vector<Vec2>> m_UndoStack;
-		std::stack<std::vector<Vec2>> m_RedoStack;
+		void ClearRedos();
+	private:
+		std::stack<VersionChange> m_UndoStack;
+		std::stack<VersionChange> m_RedoStack;
 	};
 }
 

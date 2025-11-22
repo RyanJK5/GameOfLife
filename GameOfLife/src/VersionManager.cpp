@@ -1,4 +1,12 @@
 #include "VersionManager.h"
+#include <optional>
+#include <set>
+#include <span>
+#include <utility>
+#include "GameEnums.h"
+#include "Graphics2D.h"
+#include "KeyShortcut.h"
+#include "SimulationControlResult.h"
 
 gol::SimulationControlResult gol::VersionShortcutManager::Update(GameState state)
 {
@@ -11,44 +19,6 @@ gol::SimulationControlResult gol::VersionShortcutManager::Update(GameState state
 	return { .Action = result };
 }
 
-void gol::VersionManager::BeginChange()
-{
-	m_UndoStack.push({});
-	while (!m_RedoStack.empty())
-		m_RedoStack.pop();
-}
-
-void gol::VersionManager::AddChange(Vec2 pos)
-{
-	if (m_UndoStack.empty())
-		return;
-
-	m_UndoStack.top().push_back(pos);
-}
-
-std::optional<std::vector<gol::Vec2>> gol::VersionManager::Undo()
-{
-	if (m_UndoStack.empty())
-		return std::nullopt;
-
-	std::vector<Vec2> state = std::move(m_UndoStack.top());
-	m_UndoStack.pop();
-	m_RedoStack.push(state);
-
-	return state;
-}
-
-std::optional<std::vector<gol::Vec2>> gol::VersionManager::Redo()
-{
-	if (m_RedoStack.empty())
-		return std::nullopt;
-
-	std::vector<Vec2> state = std::move(m_RedoStack.top());
-	m_RedoStack.pop();
-	m_UndoStack.push(state);
-	return state;
-}
-
 gol::GameAction gol::VersionShortcutManager::CheckShortcuts(std::span<KeyShortcut> shortcuts, GameAction targetAction)
 {
 	auto result = GameAction::None;
@@ -59,4 +29,82 @@ gol::GameAction gol::VersionShortcutManager::CheckShortcuts(std::span<KeyShortcu
 			result = targetAction;
 	}
 	return result;
+}
+
+void gol::VersionManager::BeginPaintChange(Vec2 pos, bool insert)
+{
+	if (insert)
+		m_UndoStack.push({ .CellsInserted = { pos } });
+	else
+		m_UndoStack.push({ .CellsDeleted = { pos } });
+	ClearRedos();
+}
+
+void gol::VersionManager::AddPaintChange(Vec2 pos)
+{
+	if (m_UndoStack.empty())
+		return;
+
+	if (m_UndoStack.top().CellsInserted.size() > 0)
+		m_UndoStack.top().CellsInserted.insert(pos);
+	else
+		m_UndoStack.top().CellsDeleted.insert(pos);
+}
+
+void gol::VersionManager::AddBatchChange(const std::set<Vec2>& positions, GameAction action, bool insert)
+{
+	m_UndoStack.push({ .Action = action });
+	if (insert)
+		m_UndoStack.top().CellsInserted = positions;
+	else
+		m_UndoStack.top().CellsDeleted = positions;
+	ClearRedos();
+}
+
+void gol::VersionManager::AddActionsChange(GameAction action)
+{
+	m_UndoStack.push({ .Action = action });
+	ClearRedos();
+}
+
+void gol::VersionManager::AddSelectionChange(const VersionChange& change)
+{
+	m_UndoStack.push(change);
+	ClearRedos();
+}
+
+const gol::VersionChange* gol::VersionManager::PastChange() const
+{
+	if (m_UndoStack.empty())
+		return nullptr;
+	return &m_UndoStack.top();
+}
+
+std::optional<gol::VersionChange> gol::VersionManager::Undo()
+{
+	if (m_UndoStack.empty())
+		return std::nullopt;
+
+	VersionChange state = std::move(m_UndoStack.top());
+	m_UndoStack.pop();
+	m_RedoStack.push(state);
+
+	return state;
+}
+
+std::optional<gol::VersionChange> gol::VersionManager::Redo()
+{
+	if (m_RedoStack.empty())
+		return std::nullopt;
+
+	VersionChange state = std::move(m_RedoStack.top());
+	m_RedoStack.pop();
+	m_UndoStack.push(state);
+	return state;
+}
+
+void gol::VersionManager::ClearRedos()
+{
+	while (!m_RedoStack.empty())
+		m_RedoStack.pop();
 }

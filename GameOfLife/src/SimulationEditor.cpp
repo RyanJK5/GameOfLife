@@ -1,9 +1,27 @@
 #include <exception>
-#include <iostream>
+#include <cmath>
+#include <format>
+#include <utility>
 
-#include "Logging.h"
 #include "RLEEncoder.h"
 #include "SimulationEditor.h"
+#include <algorithm>
+#include <cstdint>
+#include <filesystem>
+#include <optional>
+#include <string>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include "GameEnums.h"
+#include "GameGrid.h"
+#include "Graphics2D.h"
+#include "GraphicsHandler.h"
+#include "SimulationControlResult.h"
+#include "glm/fwd.hpp"
+#include "imgui.h"
+#include "VersionManager.h"
+#include <vector>
+#include <array>
 
 gol::SimulationEditor::SimulationEditor(Size2 windowSize, Size2 gridSize)
     : m_Grid(gridSize)
@@ -150,16 +168,27 @@ gol::Rect gol::SimulationEditor::ViewportBounds() const
     return WindowBounds();
 }
 
-void gol::SimulationEditor::RemoveSelection()
+void gol::SimulationEditor::RemoveSelection(bool updateVersion)
 {
-    if (m_AnchorSelection != m_SentinelSelection && m_Selected)
-        m_Grid.InsertGrid(*m_Selected, SelectionBounds().UpperLeft());
+    if (m_Selected)
+    {
+        auto insertedCells = m_Grid.InsertGrid(*m_Selected, SelectionBounds().UpperLeft());
+        if (updateVersion)
+            m_VersionManager.AddSelectionChange
+            ({
+                .Action = GameAction::Deselect,
+				.SelectionBounds = SelectionBounds(),
+                .CellsInserted = insertedCells,
+                .CellsDeleted = m_Selected->Data()
+            });
+    }
+
     m_AnchorSelection   = std::nullopt;
     m_SentinelSelection = std::nullopt;
     m_Selected          = std::nullopt;
 }
 
-void gol::SimulationEditor::CopySelection(bool cut) {
+void gol::SimulationEditor::CopySelection() {
     if (!m_Selected)
         return;
     ImGui::SetClipboardText(
@@ -167,18 +196,7 @@ void gol::SimulationEditor::CopySelection(bool cut) {
             RLEEncoder::EncodeRegion<uint32_t>(*m_Selected, {0, 0, m_Selected->Width(), m_Selected->Height()}).data()
         )
     );
-    if (!cut)
-        RemoveSelection();
-}
-
-void gol::SimulationEditor::CutSelection()
-{
-    if (!m_AnchorSelection)
-        return;
-    CopySelection(true);
-    auto toClear = SelectionBounds();
     RemoveSelection();
-    m_Grid.ClearRegion(toClear);
 }
 
 void gol::SimulationEditor::PasteSelection()
@@ -188,19 +206,91 @@ void gol::SimulationEditor::PasteSelection()
         gridPos = m_AnchorSelection;
     if (!gridPos)
         return;
-    RemoveSelection();
+
+    RemoveSelection(true);
+
     m_Selected = RLEEncoder::DecodeRegion<uint32_t>(ImGui::GetClipboardText());
     m_AnchorSelection = gridPos;
-    m_SentinelSelection = { gridPos->X + m_Selected->Width(), gridPos->Y + m_Selected->Height() };
+    m_SentinelSelection = { gridPos->X + m_Selected->Width() - 1, gridPos->Y + m_Selected->Height() - 1 };
+    
+    m_VersionManager.AddSelectionChange
+    ({
+        .Action = GameAction::Paste,
+        .SelectionBounds = SelectionBounds(),
+        .CellsInserted = m_Selected->Data(),
+        .CellsDeleted = {}
+    });
 }
 
-void gol::SimulationEditor::NudgeSelection(Vec2 direction)
+void gol::SimulationEditor::DeleteSelection(bool cut)
+{
+    if (!m_Selected)
+        return;
+    
+    auto bounds = SelectionBounds();
+    m_VersionManager.AddSelectionChange
+    ({
+        .Action = GameAction::Delete,
+        .SelectionBounds = SelectionBounds(),
+        .CellsInserted = {},
+        .CellsDeleted = m_Selected->Data()
+    });
+    
+    if (cut)
+        ImGui::SetClipboardText(
+            reinterpret_cast<const char*>(
+                RLEEncoder::EncodeRegion<uint32_t>(*m_Selected, { 0, 0, m_Selected->Width(), m_Selected->Height() }).data()
+            )
+        );
+
+    m_Selected = std::nullopt;
+	m_AnchorSelection = std::nullopt;
+	m_SentinelSelection = std::nullopt;
+}
+
+void gol::SimulationEditor::RotateSelection(bool clockwise, bool updateVersion)
+{
+    if (!m_Selected)
+        return;
+
+    auto upperLeft = SelectionBounds().UpperLeft();
+    auto width = static_cast<float>(m_Selected->Width());
+    auto height = static_cast<float>(m_Selected->Height());
+
+    auto gridCenter = Vec2F
+    {
+        static_cast<float>(upperLeft.X) + width / 2.f,
+        static_cast<float>(upperLeft.Y) + height / 2.f
+    };
+
+    m_AnchorSelection = Graphics2D::Rotate(gridCenter, clockwise ? SelectionBounds().LowerLeft() : SelectionBounds().UpperRight(), clockwise);
+    m_SentinelSelection = *m_AnchorSelection + Vec2{ m_Selected->Height() - 1, m_Selected->Width() - 1 };
+    m_Selected->RotateGrid();
+
+    if (updateVersion)
+        m_VersionManager.AddSelectionChange
+        ({
+            .Action = GameAction::Rotate,
+            .SelectionBounds = SelectionBounds(),
+        });
+}
+
+void gol::SimulationEditor::NudgeSelection(GameAction nudgeType, Vec2 direction, bool updateVersion)
 {
     if (!m_AnchorSelection || (m_AnchorSelection == m_SentinelSelection))
         return;
-    //m_Grid.TranslateRegion(SelectionBounds(), direction);
+
     *m_AnchorSelection += direction;
     *m_SentinelSelection += direction;
+
+    if (!updateVersion)
+        return;
+    m_VersionManager.AddSelectionChange
+    ({
+        .Action = nudgeType,
+        .SelectionBounds = SelectionBounds(),
+        .NudgeTranslation = direction
+    });
 }
 
 gol::Rect gol::SimulationEditor::SelectionBounds() const
@@ -211,6 +301,16 @@ gol::Rect gol::SimulationEditor::SelectionBounds() const
         std::min(m_AnchorSelection->Y, m_SentinelSelection->Y),
         std::abs(m_SentinelSelection->X - m_AnchorSelection->X) + 1,
         std::abs(m_SentinelSelection->Y - m_AnchorSelection->Y) + 1
+    };
+}
+
+void gol::SimulationEditor::SetSelectionBounds(const Rect& rect)
+{
+    m_AnchorSelection = rect.Pos();
+    m_SentinelSelection = *m_AnchorSelection + Vec2
+    {
+        rect.Width - 1,
+        rect.Height - 1
     };
 }
 
@@ -233,26 +333,89 @@ std::optional<gol::Vec2> gol::SimulationEditor::CursorGridPos()
 
 void gol::SimulationEditor::UpdateVersion(const SimulationControlResult& args)
 {
-    auto changedPositions = [this, args]()
-    {
-        switch (args.Action)
-        {
-        case GameAction::Undo: return m_VersionManager.Undo();
-        case GameAction::Redo: return m_VersionManager.Redo();
-        }
-        return std::optional<std::vector<Vec2>> {};
-    }();
-
-    if (!changedPositions)
+    auto versionChanges = args.Action == GameAction::Undo
+        ? m_VersionManager.Undo()
+		: m_VersionManager.Redo();
+    if (!versionChanges)
         return;
 
-    for (auto&& pos : *changedPositions)
+    if (!versionChanges->InsertedIntoSelection())
     {
-        auto result = m_Grid.Get(pos);
-        if (!result)
-            continue;
-        m_Grid.Set(pos.X, pos.Y, !(*result));
+        RestoreGridVersion(args.Action, m_Grid, *versionChanges);
+        return;
     }
+
+    switch (versionChanges->Action)
+    {
+    using enum GameAction;
+	case NudgeLeft:  [[fallthrough]];
+	case NudgeRight: [[fallthrough]];
+	case NudgeUp:    [[fallthrough]];
+    case NudgeDown:
+        if (args.Action == Undo)
+            NudgeSelection(versionChanges->Action, -versionChanges->NudgeTranslation, false);
+        else
+            NudgeSelection(versionChanges->Action, versionChanges->NudgeTranslation, false);
+        return;
+    case Rotate:
+        RotateSelection(args.Action == Redo, false);
+        return;
+    case Paste: [[fallthrough]];
+    case Delete:
+        SetSelectionBounds(*versionChanges->SelectionBounds);
+        m_Selected = GameGrid(versionChanges->SelectionBounds->Size());
+        RestoreGridVersion(args.Action, *m_Selected, *versionChanges);
+
+        if ((args.Action == Redo) == (versionChanges->Action == Delete))
+            RemoveSelection(false);
+        return;
+    case Select:
+        if (args.Action == Undo)
+        {
+			RemoveSelection(false);
+            return;
+        }
+        else
+        {
+        	SetSelectionBounds(*versionChanges->SelectionBounds);
+            m_Selected = GameGrid(versionChanges->SelectionBounds->Size());
+            for (auto pos : versionChanges->CellsInserted)
+                m_Selected->Set(pos.X, pos.Y, true);
+            for (auto pos : versionChanges->CellsDeleted)
+                m_Grid.Set(pos.X, pos.Y, false);
+        }
+        return;
+    case Deselect:
+        if (args.Action == Undo)
+        {
+			SetSelectionBounds(*versionChanges->SelectionBounds);
+            m_Selected = GameGrid(versionChanges->SelectionBounds->Size());
+            for (auto pos : versionChanges->CellsDeleted)
+                m_Selected->Set(pos.X, pos.Y, true);
+            for (auto pos : versionChanges->CellsInserted)
+                m_Grid.Set(pos.X, pos.Y, false);
+        }
+        else
+        {
+			RemoveSelection(false);
+            return;
+        }
+    }
+}
+
+void gol::SimulationEditor::RestoreGridVersion(GameAction undoRedo, GameGrid& grid, const VersionChange& versionChanges)
+{
+    auto& insertions = undoRedo == GameAction::Undo
+        ? versionChanges.CellsDeleted
+        : versionChanges.CellsInserted;
+    for (auto& pos : insertions)
+        grid.Set(pos.X, pos.Y, true);
+
+    auto& deletions = undoRedo == GameAction::Undo
+        ? versionChanges.CellsInserted
+        : versionChanges.CellsDeleted;
+    for (auto& pos : deletions)
+        grid.Set(pos.X, pos.Y, false);
 }
 
 gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult& result)
@@ -291,43 +454,31 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
         CopySelection();
         return result.State;
     case Cut:
-        CutSelection();
+        DeleteSelection(true);
         return result.State;
     case Paste:
         PasteSelection();
         return result.State;
     case Delete:
-        m_Selected = std::nullopt;
-        RemoveSelection();
+        DeleteSelection(false);
         return result.State;
     case Deselect:
         RemoveSelection();
         return result.State;
     case NudgeLeft:
-        NudgeSelection({ -result.NudgeSize, 0 });
+        NudgeSelection(result.Action, { -result.NudgeSize, 0 });
         return result.State;
     case NudgeRight:
-        NudgeSelection({ result.NudgeSize, 0 });
+        NudgeSelection(result.Action, { result.NudgeSize, 0 });
         return result.State;
     case NudgeUp:
-        NudgeSelection({ 0, -result.NudgeSize });
+        NudgeSelection(result.Action, { 0, -result.NudgeSize });
         return result.State;
     case NudgeDown:
-        NudgeSelection({ 0, result.NudgeSize });
+        NudgeSelection(result.Action, { 0, result.NudgeSize });
         return result.State;
     case Rotate:
-   //     if (m_Selected)
-   //     {
-   //         auto upperLeft = SelectionBounds().UpperLeft();
-   //         auto gridCenter = Vec2F
-   //         { 
-   //             static_cast<float>(upperLeft.X) + m_Selected->Width() / 2.f,
-   //             static_cast<float>(upperLeft.Y) + m_Selected->Height() / 2.f
-   //         };
-   //         m_AnchorSelection = Graphics2D::Rotate(gridCenter, SelectionBounds().LowerLeft(), true);
-			//m_SentinelSelection = *m_AnchorSelection + Vec2 { m_Selected->Height() - 1, m_Selected->Width() - 1 };
-			//m_Selected->RotateGrid();
-   //     }
+        RotateSelection(true);
         return result.State;
     case Undo:
         UpdateVersion(result);
@@ -354,10 +505,10 @@ void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)
                 m_SentinelSelection = gridPos;
             }
             m_EditorMode = *m_Grid.Get(gridPos.X, gridPos.Y) ? EditorMode::Delete : EditorMode::Insert;
-            m_VersionManager.BeginChange();
+            m_VersionManager.BeginPaintChange(gridPos, m_EditorMode == EditorMode::Insert);
         }
         if (*m_Grid.Get(gridPos.X, gridPos.Y) != (m_EditorMode == EditorMode::Insert))
-			m_VersionManager.AddChange(gridPos);
+			m_VersionManager.AddPaintChange(gridPos);
         m_Grid.Set(gridPos.X, gridPos.Y, m_EditorMode == EditorMode::Insert);
         return;
     }
@@ -379,7 +530,14 @@ bool gol::SimulationEditor::UpdateSelectionArea(Vec2 gridPos)
     {
         if (!m_Selected)
         {
-    		m_Selected = m_Grid.ExtractRegion(SelectionBounds());
+    		m_Selected = m_Grid.SubRegion(SelectionBounds());
+            m_VersionManager.AddSelectionChange
+            ({
+                .Action = GameAction::Select,
+                .SelectionBounds = SelectionBounds(),
+                .CellsInserted = m_Selected->Data(),
+                .CellsDeleted = m_Grid.ReadRegion(SelectionBounds())
+            });
             m_Grid.ClearRegion(SelectionBounds());
         }
         return false;
@@ -410,13 +568,8 @@ void gol::SimulationEditor::UpdateViewport()
     const Rect bounds = ViewportBounds();
     
     auto mousePos = ImGui::GetIO().MousePos;
-    if (bounds.InBounds(mousePos.x, mousePos.y))
-    {
-        if (ImGui::GetIO().MouseWheel != 0)
-        {
-            m_Graphics.Camera.ZoomBy(mousePos, bounds, ImGui::GetIO().MouseWheel / 10.f);
-        }
-    }
+    if (bounds.InBounds(mousePos.x, mousePos.y) && ImGui::GetIO().MouseWheel != 0)
+        m_Graphics.Camera.ZoomBy(mousePos, bounds, ImGui::GetIO().MouseWheel / 10.f);
 
     glViewport(static_cast<int32_t>(bounds.X - m_WindowBounds.X), static_cast<int32_t>(bounds.Y - m_WindowBounds.Y), bounds.Width, bounds.Height);
 }

@@ -124,7 +124,7 @@ namespace gol
 			auto rotated = clockwise
 				? Vec2F { -offset.Y,  offset.X }
 			: Vec2F { offset.Y, -offset.X };
-			auto result = rotated + Vec2F { center.Y, center.X };
+			auto result = rotated + center;
 			return Vec2 { static_cast<int32_t>(result.X), static_cast<int32_t>(result.Y) };
 		};
 	}

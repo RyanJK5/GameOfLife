@@ -22,6 +22,7 @@ namespace gol
 		Resize,
 		
 		Rotate,
+		Select,
 		Deselect,
 		Delete,
 		Copy,

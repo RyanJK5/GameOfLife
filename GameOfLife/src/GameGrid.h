@@ -35,9 +35,11 @@ namespace gol
 		bool Toggle(int32_t x, int32_t y);
 		
 		void TranslateRegion(const Rect& region, Vec2 translation);
-		GameGrid ExtractRegion(const Rect& region) const;
+		GameGrid SubRegion(const Rect& region) const;
+		std::set<Vec2> ReadRegion(const Rect& region) const;
 		void ClearRegion(const Rect& region);
-		void InsertGrid(const GameGrid& grid, Vec2 pos);
+		void ClearData(const std::vector<Vec2>& data, Vec2 pos);
+		std::set<Vec2> InsertGrid(const GameGrid& grid, Vec2 pos);
 		void RotateGrid(bool clockwise = true);
 
 		std::optional<bool> Get(int32_t x, int32_t y) const;
