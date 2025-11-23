@@ -16,7 +16,8 @@
 
 gol::SelectionUpdateResult gol::SelectionManager::UpdateSelectionArea(GameGrid& grid, Vec2 gridPos)
 {
-    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)))
+    const bool shiftDown = ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift);
+    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && shiftDown)
     {
         m_SentinelSelection = gridPos;
         if (!m_AnchorSelection)
@@ -174,28 +175,19 @@ std::optional<gol::VersionChange> gol::SelectionManager::HandleAction(SelectionA
 {
     switch (action)
     {
-    case SelectionAction::Copy:
-        return Copy(grid);
-    case SelectionAction::Cut:
-        return Cut();
-    case SelectionAction::Paste:
-        return Paste(gridPos);
-    case SelectionAction::Delete:
-        return Delete();
-    case SelectionAction::Deselect:
-        return Deselect(grid);
-    case SelectionAction::NudgeLeft:
-        return Nudge({ -nudgeSize, 0 });
-    case SelectionAction::NudgeRight:
-        return Nudge({ nudgeSize, 0 });
-    case SelectionAction::NudgeUp:
-        return Nudge({ 0, -nudgeSize });
-    case SelectionAction::NudgeDown:
-        return Nudge({ 0, nudgeSize });
-    case SelectionAction::Rotate:
-        return Rotate(true);
+    using enum SelectionAction;
+    case Copy:       return this->Copy(grid);
+    case Cut:        return this->Cut();
+    case Paste:      return this->Paste(gridPos);
+    case Delete:     return this->Delete();
+    case Deselect:   return this->Deselect(grid);
+    case NudgeLeft:  return Nudge({ -nudgeSize, 0 });
+    case NudgeRight: return Nudge({ nudgeSize, 0 });
+    case NudgeUp:    return Nudge({ 0, -nudgeSize });
+    case NudgeDown:  return Nudge({ 0, nudgeSize });
+    case Rotate:     return this->Rotate(true);
     }
-    std::unreachable();
+    return std::nullopt;
 }
 
 void gol::SelectionManager::HandleVersionChange(EditorAction undoRedo, GameGrid& grid, const VersionChange& change)

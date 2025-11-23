@@ -1,8 +1,10 @@
+#include <cmath>
 #include <cstdint>
 #include <filesystem>
 #include <format>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/fwd.hpp>
 #include <imgui/imgui.h>
 #include <optional>
 #include <string>
@@ -17,8 +19,6 @@
 #include "SimulationEditor.h"
 #include "VersionManager.h"
 #include "Logging.h"
-#include <cmath>
-#include <glm/fwd.hpp>
 
 gol::SimulationEditor::SimulationEditor(Size2 windowSize, Size2 gridSize)
     : m_Grid(gridSize)
@@ -27,7 +27,7 @@ gol::SimulationEditor::SimulationEditor(Size2 windowSize, Size2 gridSize)
 
 gol::GameState gol::SimulationEditor::Update(const SimulationControlResult& args)
 {
-    GraphicsHandlerArgs graphicsArgs = { .ViewportBounds = ViewportBounds(), .GridSize = m_Grid.Size() };
+    auto graphicsArgs = GraphicsHandlerArgs { .ViewportBounds = ViewportBounds(), .GridSize = m_Grid.Size() };
 
     UpdateViewport();
     UpdateDragState();
@@ -116,7 +116,7 @@ void gol::SimulationEditor::DisplaySimulation()
     ImGui::Begin("Simulation");
     ImGui::BeginChild("Render");
 
-    ImDrawListSplitter splitter;
+    ImDrawListSplitter splitter {};
     splitter.Split(ImGui::GetWindowDrawList(), 2);
 
     splitter.SetCurrentChannel(ImGui::GetWindowDrawList(), 0);
@@ -213,9 +213,11 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
             m_Grid = GameGrid(m_Grid.Size());
             return GameState::Paint;
         case Reset:
+            m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
             m_Grid = m_InitialGrid;
             return GameState::Paint;
         case Restart:
+            m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
             m_Grid = m_InitialGrid;
             return GameState::Simulation;
         case Pause:
@@ -237,28 +239,7 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
         {
         using enum EditorAction;
         case Resize:
-        {
-            m_VersionManager.PushChange
-            ({
-                .Action = Resize,
-                .GridResize = {{ m_Grid, *result.NewDimensions }}
-            });
-            
-            m_Grid = GameGrid(std::move(m_Grid), *result.NewDimensions);
-            if (m_SelectionManager.CanDrawSelection())
-            {
-                auto selection = m_SelectionManager.SelectionBounds();
-                if (!m_Grid.InBounds(selection.UpperLeft()) || !m_Grid.InBounds(selection.UpperRight()) ||
-                        !m_Grid.InBounds(selection.LowerLeft()) || !m_Grid.InBounds(selection.LowerRight()))
-                    m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-            }
-            m_Graphics.Camera.Center = 
-            { 
-                result.NewDimensions->Width  * DefaultCellWidth  / 2.f, 
-                result.NewDimensions->Height * DefaultCellHeight / 2.f 
-            };
-            return GameState::Paint;
-        }
+            return ResizeGrid(result);
         case Undo:
             UpdateVersion(result);
             return result.State;
@@ -276,6 +257,30 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
     }
 
     return result.State;
+}
+
+gol::GameState gol::SimulationEditor::ResizeGrid(const gol::SimulationControlResult& result)
+{
+    m_VersionManager.PushChange
+    ({
+        .Action = EditorAction::Resize,
+        .GridResize = { { m_Grid, *result.NewDimensions } }
+        });
+
+    m_Grid = GameGrid(std::move(m_Grid), *result.NewDimensions);
+    if (m_SelectionManager.CanDrawSelection())
+    {
+        auto selection = m_SelectionManager.SelectionBounds();
+        if (!m_Grid.InBounds(selection.UpperLeft()) || !m_Grid.InBounds(selection.UpperRight()) ||
+            !m_Grid.InBounds(selection.LowerLeft()) || !m_Grid.InBounds(selection.LowerRight()))
+            m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
+    }
+    m_Graphics.Camera.Center =
+    {
+        result.NewDimensions->Width * DefaultCellWidth / 2.f,
+        result.NewDimensions->Height * DefaultCellHeight / 2.f
+    };
+    return GameState::Paint;
 }
 
 void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)

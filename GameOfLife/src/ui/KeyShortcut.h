@@ -4,6 +4,8 @@
 #include <imgui/imgui.h>
 #include <ranges>
 #include <vector>
+#include <span>
+#include <string>
 
 namespace gol
 {
@@ -13,6 +15,8 @@ namespace gol
 		constexpr static auto MapChordsToVector =
 			std::views::transform([](auto chord) { return KeyShortcut(chord); })
 			| std::ranges::to<std::vector>();
+
+		static std::string StringRepresentation(std::span<const KeyShortcut> shortcuts);
 	public:
 		KeyShortcut(ImGuiKeyChord shortcut, bool onRelease = true) : m_Shortcut(shortcut), m_OnRelease(onRelease), m_Down(false) { }
 

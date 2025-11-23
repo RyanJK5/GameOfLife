@@ -1,6 +1,24 @@
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
 #include "KeyShortcut.h"
+#include <string>
+#include <span>
+
+std::string gol::KeyShortcut::StringRepresentation(std::span<const KeyShortcut> shortcuts)
+{
+	auto tooltip = std::string {};
+	if (!shortcuts.empty())
+	{
+		for (size_t i = 0; i < shortcuts.size(); ++i)
+		{
+			tooltip += ImGui::GetKeyChordName(shortcuts[i].Shortcut());
+			if (i < shortcuts.size() - 1)
+				tooltip += ", ";
+		}
+	}
+	return tooltip;
+}
 
 bool gol::KeyShortcut::Active()
 {

@@ -47,12 +47,14 @@ namespace gol
 						return std::optional<ActType> { m_Return };
 					return std::optional<ActType> {};
 				}();
-
+			
 			if (!Enabled(state))
 			{
 				ImGui::PopItemFlag();
 				ImGui::PopStyleVar();
 			}
+			else if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+				ImGui::SetTooltip(KeyShortcut::StringRepresentation(m_Shortcuts).c_str());
 
 			return result;
 		}

@@ -36,6 +36,7 @@ namespace gol
 		void DisplaySimulation();
 
 		GameState UpdateState(const SimulationControlResult& action);
+		gol::GameState ResizeGrid(const gol::SimulationControlResult& result);
 		void UpdateViewport();
 		std::optional<Vec2> CursorGridPos();
 
