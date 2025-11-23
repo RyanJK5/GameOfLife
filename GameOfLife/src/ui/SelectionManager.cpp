@@ -84,7 +84,7 @@ std::optional<gol::VersionChange> gol::SelectionManager::Copy(GameGrid& grid)
     return Deselect(grid);
 }
 
-std::optional<gol::VersionChange> gol::SelectionManager::Paste(GameGrid& grid, std::optional<Vec2> gridPos)
+std::optional<gol::VersionChange> gol::SelectionManager::Paste(std::optional<Vec2> gridPos)
 {
     if (!gridPos)
         gridPos = m_AnchorSelection;
@@ -265,7 +265,7 @@ const std::set<gol::Vec2>& gol::SelectionManager::GridData() const
     return m_Selected->Data();
 }
 
-int32_t gol::SelectionManager::SelectedPopulation() const
+int64_t gol::SelectionManager::SelectedPopulation() const
 {
     return m_Selected ? m_Selected->Population() : 0;
 }

@@ -27,7 +27,7 @@ namespace gol
 
 		std::optional<VersionChange> Copy(GameGrid& grid);
 
-		std::optional<VersionChange> Paste(GameGrid& grid, std::optional<Vec2> gridPos);
+		std::optional<VersionChange> Paste(std::optional<Vec2> gridPos);
 
 		std::optional<VersionChange> Delete();
 		
@@ -43,7 +43,7 @@ namespace gol
 
 		bool GridAlive() const;
 		const std::set<Vec2>& GridData() const;
-		int32_t SelectedPopulation() const;
+		int64_t SelectedPopulation() const;
 
 		bool CanDrawSelection() const;
 		bool CanDrawLargeSelection() const;

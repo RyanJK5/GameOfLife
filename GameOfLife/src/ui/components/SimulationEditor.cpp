@@ -234,7 +234,7 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
         return result.State;
     case Paste:
         m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-        m_VersionManager.TryPushChange(m_SelectionManager.Paste(m_Grid, CursorGridPos()));
+        m_VersionManager.TryPushChange(m_SelectionManager.Paste(CursorGridPos()));
         return result.State;
     case Delete:
         m_VersionManager.TryPushChange(m_SelectionManager.Delete());
