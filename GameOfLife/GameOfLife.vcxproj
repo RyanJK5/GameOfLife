@@ -64,7 +64,7 @@
     <ClInclude Include="src\misc\RLEEncoder.h" />
     <ClInclude Include="src\ui\SelectionManager.h" />
     <ClInclude Include="src\graphics\ShaderManager.h" />
-    <ClInclude Include="src\ui\widgets\GameActionButton.h" />
+    <ClInclude Include="src\ui\widgets\ActionButton.h" />
     <ClInclude Include="src\misc\ConfigLoader.h" />
     <ClInclude Include="src\ui\components\SimulationControl.h" />
     <ClInclude Include="src\ui\components\SimulationEditor.h" />

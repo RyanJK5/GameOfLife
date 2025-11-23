@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "GameActionButton.h"
+#include "ActionButton.h"
 #include "GameEnums.h"
 #include "Graphics2D.h"
 #include "SimulationControlResult.h"

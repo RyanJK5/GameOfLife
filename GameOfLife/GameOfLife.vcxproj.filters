@@ -119,7 +119,7 @@
     <ClInclude Include="src\ui\KeyShortcut.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\widgets\GameActionButton.h">
+    <ClInclude Include="src\ui\widgets\ActionButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\misc\ConfigLoader.h">
