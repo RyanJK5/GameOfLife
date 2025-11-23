@@ -24,8 +24,9 @@ gol::SimulationControlResult gol::ResizeWidget::Update(GameState state)
 
     ImGui::PopStyleVar();
 
-    SimulationControlResult result;
-    result.Action = m_Button.Update(state);
-    result.NewDimensions = m_Dimensions;
-    return std::move(result);
+    return 
+    {
+        .Action = m_Button.Update(state),
+        .NewDimensions = m_Dimensions
+    };
 }

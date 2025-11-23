@@ -11,14 +11,14 @@
 
 namespace gol
 {
-    class ResizeButton : public TemplatedButton<"Apply", GameAction::Resize, false>
+    class ResizeButton : public ActionButton<EditorAction, "Apply", EditorAction::Resize, false>
     {
     public:
         ResizeButton(std::span<const ImGuiKeyChord> shortcuts = {})
-            : TemplatedButtonInternal(shortcuts)
+            : ActionButtonInternal(shortcuts)
         {}
     protected:
-        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x, GameActionButton::DefaultButtonHeight }; }
+        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x, ActionButtonInternal::DefaultButtonHeight }; }
         virtual bool Enabled(GameState state) const final { return state == GameState::Paint || state == GameState::Empty; }
     };
 

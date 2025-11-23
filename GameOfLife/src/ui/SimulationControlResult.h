@@ -2,6 +2,7 @@
 #define __ActionWidget_h__
 
 #include <cstdint>
+#include <variant>
 #include <optional>
 
 #include "Graphics2D.h"
@@ -12,7 +13,8 @@ namespace gol
 	struct SimulationControlResult
 	{
 		GameState State = GameState::Empty;
-		GameAction Action = GameAction::None;
+		std::optional<ActionVariant> Action;
+
 		std::optional<int32_t> StepCount;
 		std::optional<Size2> NewDimensions;
 		std::optional<int32_t> TickDelayMs;

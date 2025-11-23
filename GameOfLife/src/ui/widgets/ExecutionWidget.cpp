@@ -1,4 +1,5 @@
 #include <imgui/imgui.h>
+#include <optional>
 
 #include "ExecutionWidget.h"
 #include "GameEnums.h"
@@ -6,10 +7,10 @@
 
 gol::SimulationControlResult gol::ExecutionWidget::Update(GameState state)
 {
-	auto result = GameAction::None;
-	const auto updateIfNone = [&result](GameAction update)
+	auto result = std::optional<GameAction> {};
+	const auto updateIfNone = [&result](std::optional<GameAction> update)
 	{
-		if (result == GameAction::None)
+		if (!result)
 			result = update;
 	};
 

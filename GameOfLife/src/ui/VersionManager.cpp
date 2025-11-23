@@ -2,6 +2,7 @@
 #include <set>
 #include <span>
 #include <utility>
+#include <variant>
 
 #include "GameEnums.h"
 #include "Graphics2D.h"
@@ -13,20 +14,23 @@ gol::SimulationControlResult gol::VersionShortcutManager::Update(GameState state
 {
 	if (state != GameState::Paint && state != GameState::Empty)
 		return { };
-	auto result = CheckShortcuts(m_UndoShortcuts, GameAction::Undo);
-	auto redoShortcuts = CheckShortcuts(m_RedoShortcuts, GameAction::Redo);
-	if (result == GameAction::None)
+	auto result = CheckShortcuts(m_UndoShortcuts, EditorAction::Undo);
+	auto redoShortcuts = CheckShortcuts(m_RedoShortcuts, EditorAction::Redo);
+	if (!result)
 		result = redoShortcuts;
 	return { .Action = result };
 }
 
-gol::GameAction gol::VersionShortcutManager::CheckShortcuts(std::span<KeyShortcut> shortcuts, GameAction targetAction)
+std::optional<gol::EditorAction> gol::VersionShortcutManager::CheckShortcuts(std::span<KeyShortcut> shortcuts, EditorAction targetAction)
 {
-	auto result = GameAction::None;
+	auto result = std::optional<EditorAction> {};
 	for (auto&& shortcut : shortcuts)
 	{
 		auto active = shortcut.Active();
-		if (active && result == GameAction::None)
+		if (!active)
+			continue;
+		
+		if (!result)
 			result = targetAction;
 	}
 	return result;

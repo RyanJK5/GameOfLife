@@ -30,7 +30,6 @@
     <ClCompile Include="src\ui\widgets\DelayWidget.cpp" />
     <ClCompile Include="src\ui\widgets\EditorWidget.cpp" />
     <ClCompile Include="src\ui\widgets\ExecutionWidget.cpp" />
-    <ClCompile Include="src\ui\widgets\GameActionButton.cpp" />
     <ClCompile Include="src\graphics\GraphicsHandler.cpp" />
     <ClCompile Include="src\GameGrid.cpp" />
     <ClCompile Include="src\Game.cpp" />
@@ -66,7 +65,7 @@
     <ClInclude Include="src\ui\SelectionManager.h" />
     <ClInclude Include="src\graphics\ShaderManager.h" />
     <ClInclude Include="src\ui\widgets\GameActionButton.h" />
-    <ClInclude Include="src\misc\GUILoader.h" />
+    <ClInclude Include="src\misc\ConfigLoader.h" />
     <ClInclude Include="src\ui\components\SimulationControl.h" />
     <ClInclude Include="src\ui\components\SimulationEditor.h" />
     <ClInclude Include="src\ui\widgets\StepWidget.h" />

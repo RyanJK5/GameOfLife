@@ -3,9 +3,11 @@
 
 #include <cstdint>
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+#include <optional>
 #include <string_view>
-#include <string>
 #include <span>
+#include <string>
 #include <vector>
 
 #include "GameEnums.h"
@@ -14,28 +16,55 @@
 
 namespace gol
 {
-	class GameActionButton
+	template <ActionType ActType, auto Label, ActType Action, bool LineBreak>
+	class ActionButtonInternal
 	{
-    public:
-        constexpr static int32_t DefaultButtonHeight = 50;
 	public:
-		GameActionButton(
-			std::string_view label, 
-			GameAction actionReturn,
-            std::span<const ImGuiKeyChord> shortcuts,
-			bool lineBreak = false
-		);
+		static constexpr int32_t DefaultButtonHeight = 50;
+	
+		ActionButtonInternal(std::span<const ImGuiKeyChord> shortcuts)
+			: m_Shortcuts(shortcuts | KeyShortcut::MapChordsToVector)
+		{ }
 
-		virtual GameAction Update(GameState state);
+		virtual std::optional<ActType> Update(GameState state)
+		{
+			if (!Enabled(state))
+			{
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
+
+			if (!m_LineBreak)
+				ImGui::SameLine();
+
+			std::optional<ActType> result = [this, state]()
+				{
+					bool active = false;
+					for (auto& shortcut : m_Shortcuts)
+						active = shortcut.Active() || active;
+
+					if (ImGui::Button(m_Label.c_str(), Dimensions()) || (Enabled(state) && active))
+						return std::optional<ActType> { m_Return };
+					return std::optional<ActType> {};
+				}();
+
+			if (!Enabled(state))
+			{
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			}
+
+			return result;
+		}
 	protected:
 		virtual Size2F Dimensions() const = 0;
 		virtual	bool Enabled(GameState state) const = 0;
 	private:
-		std::string m_Label;
-		GameAction m_Return;
+		std::string m_Label = Label;
+		ActType m_Return = Action;
+		bool m_LineBreak = LineBreak;
 
 		std::vector<KeyShortcut> m_Shortcuts;
-		bool m_LineBreak;
 	};
 
     template <size_t Length>
@@ -49,19 +78,8 @@ namespace gol
         char value[Length];
     };
 
-    template <auto Label, GameAction Action, bool LineBreak>
-    class TemplatedButtonInternal : public GameActionButton
-    {
-    public:
-        TemplatedButtonInternal() = default;
-
-        TemplatedButtonInternal(std::span<const ImGuiKeyChord> shortcuts)
-            : GameActionButton(Label, Action, shortcuts, LineBreak)
-        {}
-    };
-
-    template <StringLiteral Label, GameAction Action, bool LineBreak>
-    using TemplatedButton = TemplatedButtonInternal<Label.value, Action, LineBreak>;
+    template <ActionType ActType, StringLiteral Label, ActType Action, bool LineBreak>
+    using ActionButton = ActionButtonInternal<ActType, Label.value, Action, LineBreak>;
 }
 
 #endif

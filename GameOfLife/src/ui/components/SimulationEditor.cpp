@@ -9,6 +9,7 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <variant>
 
 #include "GameEnums.h"
 #include "GameGrid.h"
@@ -36,7 +37,7 @@ gol::GameState gol::SimulationEditor::Update(const SimulationControlResult& args
     if (args.TickDelayMs)
         m_TickDelayMs = *args.TickDelayMs;
 
-    GameState state = args.Action == GameAction::None 
+    GameState state = !args.Action
         ? args.State 
         : UpdateState(args);
 
@@ -185,97 +186,86 @@ std::optional<gol::Vec2> gol::SimulationEditor::CursorGridPos()
 
 void gol::SimulationEditor::UpdateVersion(const SimulationControlResult& args)
 {
-    auto versionChanges = args.Action == GameAction::Undo
+	auto action = std::get<EditorAction>(*args.Action);
+
+    auto versionChanges = action == EditorAction::Undo
         ? m_VersionManager.Undo()
 		: m_VersionManager.Redo();
     if (!versionChanges)
         return;
 
-	m_SelectionManager.HandleVersionChange(args.Action, m_Grid, *versionChanges);
+	m_SelectionManager.HandleVersionChange(action, m_Grid, *versionChanges);
 }
 
 gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult& result)
 {
-    switch (result.Action)
+    if (auto* action = std::get_if<GameAction>(&*result.Action))
     {
-        using enum GameAction;
-    case Start:
-        m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-        m_InitialGrid = m_Grid;
-        return GameState::Simulation;
-    case Clear:
-        m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-        m_Grid = GameGrid(m_Grid.Size());
-        return GameState::Paint;
-    case Reset:
-        m_Grid = m_InitialGrid;
-        return GameState::Paint;
-    case Restart:
-        m_Grid = m_InitialGrid;
-        return GameState::Simulation;
-    case Pause:
-        return GameState::Paused;
-    case Resume:
-        m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-        return GameState::Simulation;
-    case Step:
-        m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-        for (int32_t i = 0; i < *result.StepCount; i++)
-            m_Grid.Update();
-        return m_Grid.Dead() ? GameState::Empty : GameState::Paused;
-    case Resize:
-    {
-        m_Grid = GameGrid(m_Grid, *result.NewDimensions);
-        if (m_SelectionManager.CanDrawSelection())
+        switch(*action)
         {
-            auto selection = m_SelectionManager.SelectionBounds();
-            if (!m_Grid.InBounds(selection.UpperLeft()) || !m_Grid.InBounds(selection.UpperRight()) ||
-                    !m_Grid.InBounds(selection.LowerLeft()) || !m_Grid.InBounds(selection.LowerRight()))
-			    m_SelectionManager.Deselect(m_Grid);
+        using enum GameAction;
+        case Start:
+            m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
+            m_InitialGrid = m_Grid;
+            return GameState::Simulation;
+        case Clear:
+            m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
+            m_Grid = GameGrid(m_Grid.Size());
+            return GameState::Paint;
+        case Reset:
+            m_Grid = m_InitialGrid;
+            return GameState::Paint;
+        case Restart:
+            m_Grid = m_InitialGrid;
+            return GameState::Simulation;
+        case Pause:
+            return GameState::Paused;
+        case Resume:
+            m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
+            return GameState::Simulation;
+        case Step:
+            m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
+            for (int32_t i = 0; i < *result.StepCount; i++)
+                m_Grid.Update();
+            return m_Grid.Dead() ? GameState::Empty : GameState::Paused;
         }
-        m_Graphics.Camera.Center = { result.NewDimensions->Width * DefaultCellWidth / 2.f, result.NewDimensions->Height * DefaultCellHeight / 2.f };
-        return GameState::Paint;
-    }
-    case Copy:
-        m_VersionManager.TryPushChange(m_SelectionManager.Copy(m_Grid));
-        return result.State;
-    case Cut:
-        m_VersionManager.TryPushChange(m_SelectionManager.Cut());
-        return result.State;
-    case Paste:
-        m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-        m_VersionManager.TryPushChange(m_SelectionManager.Paste(CursorGridPos()));
-        return result.State;
-    case Delete:
-        m_VersionManager.TryPushChange(m_SelectionManager.Delete());
-        return result.State;
-    case Deselect:
-        m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-        return result.State;
-    case NudgeLeft:
-        m_VersionManager.TryPushChange(m_SelectionManager.Nudge({ -result.NudgeSize, 0 }));
-        return result.State;
-    case NudgeRight:
-        m_VersionManager.TryPushChange(m_SelectionManager.Nudge({ result.NudgeSize, 0 }));
-        return result.State;
-    case NudgeUp:
-        m_VersionManager.TryPushChange(m_SelectionManager.Nudge({ 0, -result.NudgeSize }));
-        return result.State;
-    case NudgeDown:
-        m_VersionManager.TryPushChange(m_SelectionManager.Nudge({ 0, result.NudgeSize }));
-        return result.State;
-    case Rotate:
-        m_VersionManager.TryPushChange(m_SelectionManager.Rotate(true));
-        return result.State;
-    case Undo:
-        UpdateVersion(result);
-        return result.State;
-    case Redo:
-		UpdateVersion(result);
-        return result.State;
     }
 
-    throw std::exception("Cannot pass 'None' as action to UpdateState");
+    if (auto* action = std::get_if<EditorAction>(&*result.Action))
+    {
+        switch (*action)
+        {
+        using enum EditorAction;
+        case Resize:
+        {
+            m_Grid = GameGrid(m_Grid, *result.NewDimensions);
+            if (m_SelectionManager.CanDrawSelection())
+            {
+                auto selection = m_SelectionManager.SelectionBounds();
+                if (!m_Grid.InBounds(selection.UpperLeft()) || !m_Grid.InBounds(selection.UpperRight()) ||
+                    !m_Grid.InBounds(selection.LowerLeft()) || !m_Grid.InBounds(selection.LowerRight()))
+                    m_SelectionManager.Deselect(m_Grid);
+            }
+            m_Graphics.Camera.Center = { result.NewDimensions->Width * DefaultCellWidth / 2.f, result.NewDimensions->Height * DefaultCellHeight / 2.f };
+            return GameState::Paint;
+        }
+        case Undo:
+            UpdateVersion(result);
+            return result.State;
+        case Redo:
+            UpdateVersion(result);
+            return result.State;
+        }
+	}
+
+    if (auto* action = std::get_if<SelectionAction>(&*result.Action))
+    {
+        if (*action == SelectionAction::Paste)
+            m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
+        m_VersionManager.TryPushChange(m_SelectionManager.HandleAction(*action, m_Grid, CursorGridPos(), result.NudgeSize));
+    }
+
+    return result.State;
 }
 
 void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)

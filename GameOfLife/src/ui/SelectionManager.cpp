@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 #include <optional>
 #include <set>
+#include <variant>
 
 #include "GameEnums.h"
 #include "GameGrid.h"
@@ -30,7 +31,7 @@ gol::SelectionUpdateResult gol::SelectionManager::UpdateSelectionArea(GameGrid& 
         m_Selected = grid.SubRegion(SelectionBounds());
         auto change = VersionChange
         ({
-            .Action = GameAction::Select,
+            .Action = SelectionAction::Select,
             .SelectionBounds = SelectionBounds(),
             .CellsInserted = m_Selected->Data(),
             .CellsDeleted = grid.ReadRegion(SelectionBounds())
@@ -56,7 +57,7 @@ std::optional<gol::VersionChange> gol::SelectionManager::Deselect(GameGrid& grid
         auto insertedCells = grid.InsertGrid(*m_Selected, SelectionBounds().UpperLeft());
         return std::optional<VersionChange>
         {{
-            .Action = GameAction::Deselect,
+            .Action = SelectionAction::Deselect,
             .SelectionBounds = SelectionBounds(),
             .CellsInserted = insertedCells,
             .CellsDeleted = m_Selected->Data()
@@ -97,7 +98,7 @@ std::optional<gol::VersionChange> gol::SelectionManager::Paste(std::optional<Vec
 
     return VersionChange
     {
-        .Action = GameAction::Paste,
+        .Action = SelectionAction::Paste,
         .SelectionBounds = SelectionBounds(),
         .CellsInserted = m_Selected->Data(),
         .CellsDeleted = {}
@@ -136,7 +137,7 @@ std::optional<gol::VersionChange> gol::SelectionManager::Rotate(bool clockwise)
 
     return VersionChange
     {
-        .Action = GameAction::Rotate,
+        .Action = SelectionAction::Rotate,
         .SelectionBounds = SelectionBounds(),
     };
 }
@@ -152,12 +153,12 @@ std::optional<gol::VersionChange> gol::SelectionManager::Nudge(Vec2 translation)
     auto action = [translation]()
     {
         if (translation.X < 0)
-            return GameAction::NudgeLeft;
+            return SelectionAction::NudgeLeft;
         else if (translation.X > 0)
-            return GameAction::NudgeRight;
+            return SelectionAction::NudgeRight;
         else if (translation.Y < 0)
-            return GameAction::NudgeUp;
-        return GameAction::NudgeDown;
+            return SelectionAction::NudgeUp;
+        return SelectionAction::NudgeDown;
     }();
 
     return VersionChange
@@ -168,25 +169,59 @@ std::optional<gol::VersionChange> gol::SelectionManager::Nudge(Vec2 translation)
     };
 }
 
-void gol::SelectionManager::HandleVersionChange(GameAction undoRedo, GameGrid& grid, const VersionChange& change)
+std::optional<gol::VersionChange> gol::SelectionManager::HandleAction(SelectionAction action, GameGrid& grid, std::optional<Vec2> gridPos, int32_t nudgeSize)
 {
-    switch (change.Action)
+    switch (action)
     {
-    using enum GameAction;
-    case None:
+    case SelectionAction::Copy:
+        return Copy(grid);
+    case SelectionAction::Cut:
+        return Cut();
+    case SelectionAction::Paste:
+        return Paste(gridPos);
+    case SelectionAction::Delete:
+        return Delete();
+    case SelectionAction::Deselect:
+        return Deselect(grid);
+    case SelectionAction::NudgeLeft:
+        return Nudge({ -nudgeSize, 0 });
+    case SelectionAction::NudgeRight:
+        return Nudge({ nudgeSize, 0 });
+    case SelectionAction::NudgeUp:
+        return Nudge({ 0, -nudgeSize });
+    case SelectionAction::NudgeDown:
+        return Nudge({ 0, nudgeSize });
+    case SelectionAction::Rotate:
+        return Rotate(true);
+    }
+}
+
+void gol::SelectionManager::HandleVersionChange(EditorAction undoRedo, GameGrid& grid, const VersionChange& change)
+{
+    if (!change.Action)
+    {
         RestoreGridVersion(undoRedo, grid, change);
         return;
+    }
+
+    auto* action = std::get_if<SelectionAction>(&*change.Action);
+    if (!action)
+        return;
+
+    switch (*action)
+    {
+    using enum SelectionAction;
     case NudgeLeft: [[fallthrough]];
     case NudgeRight: [[fallthrough]];
     case NudgeUp: [[fallthrough]];
     case NudgeDown:
-        if (undoRedo == Undo)
+        if (undoRedo == EditorAction::Undo)
             Nudge(-change.NudgeTranslation);
         else
             Nudge(change.NudgeTranslation);
         return;
     case Rotate:
-        this->Rotate(undoRedo == Redo);
+        this->Rotate(undoRedo == EditorAction::Redo);
         return;
     case Paste: [[fallthrough]];
     case Delete:
@@ -194,11 +229,11 @@ void gol::SelectionManager::HandleVersionChange(GameAction undoRedo, GameGrid& g
         m_Selected = GameGrid(change.SelectionBounds->Size());
         RestoreGridVersion(undoRedo, *m_Selected, change);
 
-        if ((undoRedo == Redo) == (change.Action == Delete))
+        if ((undoRedo == EditorAction::Redo) == (*action == Delete))
             this->Deselect(grid);
         return;
     case Select:
-        if (undoRedo == Undo)
+        if (undoRedo == EditorAction::Undo)
         {
             this->Deselect(grid);
             return;
@@ -213,7 +248,7 @@ void gol::SelectionManager::HandleVersionChange(GameAction undoRedo, GameGrid& g
             grid.Set(pos.X, pos.Y, false);
         return;
     case Deselect:
-        if (undoRedo == Undo)
+        if (undoRedo == EditorAction::Undo)
         {
             SetSelectionBounds(*change.SelectionBounds);
             m_Selected = GameGrid(change.SelectionBounds->Size());
@@ -229,15 +264,15 @@ void gol::SelectionManager::HandleVersionChange(GameAction undoRedo, GameGrid& g
     }
 }
 
-void gol::SelectionManager::RestoreGridVersion(GameAction undoRedo, GameGrid& grid, const VersionChange& change)
+void gol::SelectionManager::RestoreGridVersion(EditorAction undoRedo, GameGrid& grid, const VersionChange& change)
 {
-    auto& insertions = undoRedo == GameAction::Undo
+    auto& insertions = undoRedo == EditorAction::Undo
         ? change.CellsDeleted
         : change.CellsInserted;
     for (auto& pos : insertions)
         grid.Set(pos.X, pos.Y, true);
 
-    auto& deletions = undoRedo == GameAction::Undo
+    auto& deletions = undoRedo == EditorAction::Undo
         ? change.CellsInserted
         : change.CellsDeleted;
     for (auto& pos : deletions)
@@ -293,7 +328,7 @@ std::optional<gol::VersionChange> gol::SelectionManager::Delete(bool cut)
     auto bounds = SelectionBounds();
     auto retValue = VersionChange
     {
-        .Action = GameAction::Delete,
+        .Action = SelectionAction::Delete,
         .SelectionBounds = SelectionBounds(),
         .CellsInserted = {},
         .CellsDeleted = m_Selected->Data()

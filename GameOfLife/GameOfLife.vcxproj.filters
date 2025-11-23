@@ -33,9 +33,6 @@
     <ClCompile Include="src\ui\KeyShortcut.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\widgets\GameActionButton.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -125,7 +122,7 @@
     <ClInclude Include="src\ui\widgets\GameActionButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\misc\GUILoader.h">
+    <ClInclude Include="src\misc\ConfigLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\components\SimulationEditor.h">

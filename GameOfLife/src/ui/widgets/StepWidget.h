@@ -12,14 +12,14 @@
 
 namespace gol
 {
-    class StepButton : public TemplatedButton<"Step", GameAction::Step, false>
+    class StepButton : public ActionButton<GameAction, "Step", GameAction::Step, false>
     {
     public:
         StepButton(std::span<const ImGuiKeyChord> shortcuts = {})
-            : TemplatedButtonInternal(shortcuts)
+            : ActionButtonInternal(shortcuts)
         { }
     protected:
-        virtual Size2F Dimensions() const override final { return { ImGui::GetContentRegionAvail().x, GameActionButton::DefaultButtonHeight }; }
+        virtual Size2F Dimensions() const override final { return { ImGui::GetContentRegionAvail().x, ActionButtonInternal::DefaultButtonHeight }; }
         virtual bool Enabled(GameState state) const override final { return state == GameState::Paint || state == GameState::Paused; }
     };
 

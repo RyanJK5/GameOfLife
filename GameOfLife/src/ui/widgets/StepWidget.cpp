@@ -19,8 +19,9 @@ gol::SimulationControlResult gol::StepWidget::Update(GameState state)
     if (m_StepCount >= StepWarning)
         ImGui::SetItemTooltip("Stepping with large values may cause lag!");
 
-    SimulationControlResult result;
-    result.Action = m_Button.Update(state);
-    result.StepCount = m_StepCount;
-    return std::move(result);
+    return 
+    {
+        .Action = m_Button.Update(state),
+        .StepCount = m_StepCount
+    };
 }

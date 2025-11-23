@@ -18,7 +18,7 @@ namespace gol
 {
 	struct VersionChange
 	{
-		GameAction Action = GameAction::None;
+		std::optional<ActionVariant> Action;
 		std::optional<Rect> SelectionBounds;
 		std::set<Vec2> CellsInserted;
 		std::set<Vec2> CellsDeleted;
@@ -37,7 +37,7 @@ namespace gol
 			, m_RedoShortcuts(redoShortcuts | KeyShortcut::MapChordsToVector)
 		{ }
 	private:
-		GameAction CheckShortcuts(std::span<KeyShortcut> shortcuts, GameAction targetAction);
+		std::optional<EditorAction> CheckShortcuts(std::span<KeyShortcut> shortcuts, EditorAction targetAction);
 	private:
 		std::vector<KeyShortcut> m_UndoShortcuts;
 		std::vector<KeyShortcut> m_RedoShortcuts;

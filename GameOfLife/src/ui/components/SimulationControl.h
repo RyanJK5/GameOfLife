@@ -3,15 +3,14 @@
 
 #include <cstdint>
 #include <imgui/imgui.h>
-#include <ranges>
 #include <unordered_map>
 #include <vector>
 
+#include "ConfigLoader.h"
 #include "DelayWidget.h"
 #include "EditorWidget.h"
 #include "ExecutionWidget.h"
 #include "GameEnums.h"
-#include "GUILoader.h"
 #include "KeyShortcut.h"
 #include "ResizeWidget.h"
 #include "SimulationControlResult.h"
@@ -22,25 +21,16 @@ namespace gol
 {
 	struct SelectionShortcuts
 	{
-		std::unordered_map<GameAction, std::vector<KeyShortcut>> Shortcuts;
+		std::unordered_map<SelectionAction, std::vector<KeyShortcut>> Shortcuts;
 
 		SelectionShortcuts(
-			const std::vector<ImGuiKeyChord>& left, 
-			const std::vector<ImGuiKeyChord>& right, 
-			const std::vector<ImGuiKeyChord>& up, 
+			const std::vector<ImGuiKeyChord>& left,
+			const std::vector<ImGuiKeyChord>& right,
+			const std::vector<ImGuiKeyChord>& up,
 			const std::vector<ImGuiKeyChord>& down,
 			const std::vector<ImGuiKeyChord>& deselect,
 			const std::vector<ImGuiKeyChord>& rotate
-		)
-			: Shortcuts({
-				{ GameAction::NudgeLeft,  left      | KeyShortcut::MapChordsToVector },
-				{ GameAction::NudgeRight, right     | KeyShortcut::MapChordsToVector },
-				{ GameAction::NudgeUp,    up        | KeyShortcut::MapChordsToVector },
-				{ GameAction::NudgeDown,  down      | KeyShortcut::MapChordsToVector },
-				{ GameAction::Deselect,   deselect  | KeyShortcut::MapChordsToVector },
-				{ GameAction::Rotate,     rotate    | KeyShortcut::MapChordsToVector },
-			})
-		{ }
+		);
 
 		SimulationControlResult Update(GameState state);
 	};

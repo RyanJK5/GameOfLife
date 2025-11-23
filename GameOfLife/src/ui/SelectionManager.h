@@ -37,7 +37,8 @@ namespace gol
 
 		std::optional<VersionChange> Nudge(Vec2 translation);
 
-		void HandleVersionChange(GameAction undoRedo, GameGrid& grid, const VersionChange& change);
+		std::optional<VersionChange> HandleAction(SelectionAction action, GameGrid& grid, std::optional<Vec2> gridPos, int32_t nudgeSize);
+		void HandleVersionChange(EditorAction undoRedo, GameGrid& grid, const VersionChange& change);
 
 		Rect SelectionBounds() const;
 
@@ -49,7 +50,7 @@ namespace gol
 		bool CanDrawLargeSelection() const;
 		bool CanDrawGrid() const;
 	private:
-		void RestoreGridVersion(GameAction undoRedo, GameGrid& grid, const VersionChange& change);
+		void RestoreGridVersion(EditorAction undoRedo, GameGrid& grid, const VersionChange& change);
 
 		void SetSelectionBounds(const Rect& bounds);
 

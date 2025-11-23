@@ -14,60 +14,60 @@
 
 namespace gol
 {
-    class CopyButton : public TemplatedButton<"Copy", GameAction::Copy, true>
+    class CopyButton : public ActionButton<SelectionAction, "Copy", SelectionAction::Copy, true>
     {
     public:
         CopyButton(std::span<const ImGuiKeyChord> shortcuts = {})
-            : TemplatedButtonInternal(shortcuts)
+            : ActionButtonInternal(shortcuts)
         {}
     protected:
-        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 4.f, GameActionButton::DefaultButtonHeight }; }
+        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 4.f, ActionButtonInternal::DefaultButtonHeight }; }
         virtual bool Enabled(GameState state) const final { return state == GameState::Paint || state == GameState::Empty || state == GameState::Paused; }
     };
 
-    class CutButton : public TemplatedButton<"Cut", GameAction::Cut, false>
+    class CutButton : public ActionButton<SelectionAction, "Cut", SelectionAction::Cut, false>
     {
     public:
         CutButton(std::span<const ImGuiKeyChord> shortcuts = {})
-            : TemplatedButtonInternal(shortcuts)
+            : ActionButtonInternal(shortcuts)
         {}
     protected:
-        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 3.f, GameActionButton::DefaultButtonHeight }; }
+        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 3.f, ActionButtonInternal::DefaultButtonHeight }; }
         virtual bool Enabled(GameState state) const final { return state == GameState::Paint || state == GameState::Empty; }
     };
 
-    class PasteButton : public TemplatedButton<"Paste", GameAction::Paste, false>
+    class PasteButton : public ActionButton<SelectionAction, "Paste", SelectionAction::Paste, false>
     {
     public:
         PasteButton(std::span<const ImGuiKeyChord> shortcuts = {})
-            : TemplatedButtonInternal(shortcuts)
+            : ActionButtonInternal(shortcuts)
         {}
     public:
         bool ClipboardCopied = false;
     protected:
-        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 2.f, GameActionButton::DefaultButtonHeight }; }
+        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x / 2.f, ActionButtonInternal::DefaultButtonHeight }; }
         virtual bool Enabled(GameState state) const final { return ClipboardCopied && (state == GameState::Paint || state == GameState::Empty); }
     };
 
-    class DeleteButton : public TemplatedButton<"Delete", GameAction::Delete, false>
+    class DeleteButton : public ActionButton<SelectionAction, "Delete", SelectionAction::Delete, false>
     {
     public:
         DeleteButton(std::span<const ImGuiKeyChord> shortcuts = {})
-            : TemplatedButtonInternal(shortcuts)
+            : ActionButtonInternal(shortcuts)
         {}
     protected:
-        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x, GameActionButton::DefaultButtonHeight }; }
+        virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x, ActionButtonInternal::DefaultButtonHeight }; }
         virtual bool Enabled(GameState state) const final { return state == GameState::Paint || state == GameState::Empty; }
     };
 
     class EditorWidget
     {
     public:
-        EditorWidget(const std::unordered_map<GameAction, std::vector<ImGuiKeyChord>>& shortcuts = {})
-            : m_CopyButton(shortcuts.at(GameAction::Copy))
-            , m_CutButton(shortcuts.at(GameAction::Cut))
-            , m_PasteButton(shortcuts.at(GameAction::Paste))
-            , m_DeleteButton(shortcuts.at(GameAction::Delete))
+        EditorWidget(const std::unordered_map<ActionVariant, std::vector<ImGuiKeyChord>>& shortcuts = {})
+            : m_CopyButton  (shortcuts.at(SelectionAction::Copy  ))
+            , m_CutButton   (shortcuts.at(SelectionAction::Cut   ))
+            , m_PasteButton (shortcuts.at(SelectionAction::Paste ))
+            , m_DeleteButton(shortcuts.at(SelectionAction::Delete))
         {}
 
         SimulationControlResult Update(GameState state);

@@ -9,7 +9,7 @@
 
 #include "Game.h"
 #include "GLException.h"
-#include "GUILoader.h"
+#include "ConfigLoader.h"
 #include "Logging.h"
  
 gol::OpenGLWindow::OpenGLWindow(int32_t width, int32_t height)

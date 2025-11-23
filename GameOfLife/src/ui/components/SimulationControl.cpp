@@ -1,17 +1,38 @@
 #include <imgui/imgui.h>
+#include <variant>
+#include <vector>
 
+#include "ConfigLoader.h"
+#include "KeyShortcut.h"
 #include "GameEnums.h"
-#include "GUILoader.h"
 #include "SimulationControl.h"
 #include "SimulationControlResult.h"
 
+gol::SelectionShortcuts::SelectionShortcuts(
+    const std::vector<ImGuiKeyChord>& left,
+    const std::vector<ImGuiKeyChord>& right,
+    const std::vector<ImGuiKeyChord>& up,
+    const std::vector<ImGuiKeyChord>& down,
+    const std::vector<ImGuiKeyChord>& deselect,
+    const std::vector<ImGuiKeyChord>& rotate
+)
+    : Shortcuts({
+        { SelectionAction::NudgeLeft,  left | KeyShortcut::MapChordsToVector },
+        { SelectionAction::NudgeRight, right | KeyShortcut::MapChordsToVector },
+        { SelectionAction::NudgeUp,    up | KeyShortcut::MapChordsToVector },
+        { SelectionAction::NudgeDown,  down | KeyShortcut::MapChordsToVector },
+        { SelectionAction::Deselect,   deselect | KeyShortcut::MapChordsToVector },
+        { SelectionAction::Rotate,     rotate | KeyShortcut::MapChordsToVector },
+    })
+{ }
+
 gol::SimulationControlResult gol::SelectionShortcuts::Update(GameState state)
 {
-	SimulationControlResult result { .Action = GameAction::None, .NudgeSize = 1 };
+	SimulationControlResult result { .NudgeSize = 1 };
 
     for (auto&& [action, actionShortcuts] : Shortcuts)
     {
-        if (action != GameAction::Deselect && state != GameState::Paint)
+        if (action != SelectionAction::Deselect && state != GameState::Paint)
             continue;
 
         bool resultActive = false;
@@ -22,7 +43,7 @@ gol::SimulationControlResult gol::SelectionShortcuts::Update(GameState state)
                 result.NudgeSize = 10;
             resultActive = shortcutActive || resultActive;
         }
-        if (resultActive && result.Action == GameAction::None)
+        if (resultActive && !result.Action)
             result.Action = action;
     }
     return result;
@@ -30,19 +51,19 @@ gol::SimulationControlResult gol::SelectionShortcuts::Update(GameState state)
 
 gol::SimulationControl::SimulationControl(const StyleLoader::StyleInfo<ImVec4>& fileInfo)
     : m_SelectionShortcuts(
-        fileInfo.Shortcuts.at(GameAction::NudgeLeft),
-        fileInfo.Shortcuts.at(GameAction::NudgeRight),
-        fileInfo.Shortcuts.at(GameAction::NudgeUp),
-        fileInfo.Shortcuts.at(GameAction::NudgeDown),
-        fileInfo.Shortcuts.at(GameAction::Deselect),
-        fileInfo.Shortcuts.at(GameAction::Rotate)
+        fileInfo.Shortcuts.at(SelectionAction::NudgeLeft),
+        fileInfo.Shortcuts.at(SelectionAction::NudgeRight),
+        fileInfo.Shortcuts.at(SelectionAction::NudgeUp),
+        fileInfo.Shortcuts.at(SelectionAction::NudgeDown),
+        fileInfo.Shortcuts.at(SelectionAction::Deselect),
+        fileInfo.Shortcuts.at(SelectionAction::Rotate)
     )
     , m_VersionManager(
-        fileInfo.Shortcuts.at(GameAction::Undo),
-        fileInfo.Shortcuts.at(GameAction::Redo)
+        fileInfo.Shortcuts.at(EditorAction::Undo),
+        fileInfo.Shortcuts.at(EditorAction::Redo)
     )
     , m_ExecutionWidget(fileInfo.Shortcuts)
-    , m_ResizeWidget(fileInfo.Shortcuts.at(GameAction::Resize))
+    , m_ResizeWidget(fileInfo.Shortcuts.at(EditorAction::Resize))
     , m_StepWidget(fileInfo.Shortcuts.at(GameAction::Step))
     , m_DelayWidget()
     , m_EditorWidget(fileInfo.Shortcuts)
@@ -50,7 +71,7 @@ gol::SimulationControl::SimulationControl(const StyleLoader::StyleInfo<ImVec4>& 
 
 void gol::SimulationControl::FillResults(SimulationControlResult& current, const SimulationControlResult& update) const
 {
-    if (current.Action == GameAction::None)
+    if (!current.Action)
         current.Action = update.Action;
     if (!current.NewDimensions)
         current.NewDimensions = update.NewDimensions;

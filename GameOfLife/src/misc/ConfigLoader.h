@@ -17,6 +17,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "GameEnums.h"
@@ -65,7 +66,7 @@ namespace gol::StyleLoader
 	{
 		std::unordered_map<StyleColor, Vec> StyleColors;
 		std::unordered_map<ImGuiCol_, StyleColor> AttributeColors;
-		std::unordered_map<GameAction, std::vector<ImGuiKeyChord>> Shortcuts;
+		std::unordered_map<ActionVariant, std::vector<ImGuiKeyChord>> Shortcuts;
 	};
 
 	static const std::unordered_map<std::string_view, StyleColor> ColorDefinitions = {
@@ -144,7 +145,7 @@ namespace gol::StyleLoader
 		{ "Delete",    ImGuiKey_Delete     }
 	};
 
-	static const std::unordered_map<std::string_view, GameAction> ActionDefinitions = {
+	static const std::unordered_map<std::string_view, GameAction> GameActionDefinitions = {
 		{ "start",       GameAction::Start      },
 		{ "pause",       GameAction::Pause      },
 		{ "resume",      GameAction::Resume     },
@@ -152,21 +153,24 @@ namespace gol::StyleLoader
 		{ "reset",       GameAction::Reset      },
 		{ "clear",       GameAction::Clear      },
 		{ "step",        GameAction::Step       },
-		{ "resize",      GameAction::Resize     },
-					     					    
-		{ "rotate",      GameAction::Rotate     },
-		{ "deselect",    GameAction::Deselect   },
-		{ "delete",      GameAction::Delete     },
-		{ "copy",        GameAction::Copy       },
-		{ "cut",         GameAction::Cut        },
-		{ "paste",       GameAction::Paste      },
-		{ "undo",        GameAction::Undo       },
-		{ "redo",        GameAction::Redo       },
+	};
+	static const std::unordered_map<std::string_view, EditorAction> EditorActionDefinitions = {
+		{ "resize",      EditorAction::Resize     },
+		{ "undo",        EditorAction::Undo       },
+		{ "redo",        EditorAction::Redo       }
+	};
+	static const std::unordered_map<std::string_view, SelectionAction> SelectionActionDefinitions = {
+		{ "rotate",      SelectionAction::Rotate     },
+		{ "deselect",    SelectionAction::Deselect   },
+		{ "delete",      SelectionAction::Delete     },
+		{ "copy",        SelectionAction::Copy       },
+		{ "cut",         SelectionAction::Cut        },
+		{ "paste",       SelectionAction::Paste      },
 
-		{ "nudge_left",  GameAction::NudgeLeft  },
-		{ "nudge_right", GameAction::NudgeRight },
-		{ "nudge_up",    GameAction::NudgeUp    },
-		{ "nudge_down",  GameAction::NudgeDown  },
+		{ "nudge_left",  SelectionAction::NudgeLeft  },
+		{ "nudge_right", SelectionAction::NudgeRight },
+		{ "nudge_up",    SelectionAction::NudgeUp    },
+		{ "nudge_down",  SelectionAction::NudgeDown  },
 
 	};
 
@@ -405,7 +409,6 @@ namespace gol::StyleLoader
 		{
 			lineNum++;
 
-
 			auto start = std::ranges::find_if(line, [](char c) { return std::isalpha(c); });
 			if (start == line.end())
 				continue;
@@ -421,14 +424,15 @@ namespace gol::StyleLoader
 
 			switch (section)
 			{
-			case SectionType::StyleColors:
+			using enum SectionType;
+			case StyleColors:
 			{
 				auto result = ReadColorPair<Vec>(lineNum, line, start);
 				if (!result)
 					return std::unexpected<YAMLError>(result.error());
 				output.StyleColors[result->first] = result->second;
 			}	break;
-			case SectionType::ImGUIStyle:
+			case ImGUIStyle:
 			{
 				auto result = ReadPair<ImGuiCol_, StyleColor>(
 					lineNum, line, start, 
@@ -439,18 +443,44 @@ namespace gol::StyleLoader
 					return std::unexpected<YAMLError>(result.error());
 				output.AttributeColors[result->first] = result->second;
 			}	break;
-			case SectionType::Shortcuts:
+			case Shortcuts:
 			{
-				auto result = ReadListPair<GameAction, ImGuiKeyChord>(
-					lineNum, line, start, 
-					MakeConverter(ActionDefinitions), 
-					MakeChordConverter<ImGuiKey, ImGuiKeyChord>(ShortcutDefinitions)
-				);
-				if (!result)
+				{
+					auto result = ReadListPair<GameAction, ImGuiKeyChord>(
+						lineNum, line, start, 
+						MakeConverter(GameActionDefinitions), 
+						MakeChordConverter<ImGuiKey, ImGuiKeyChord>(ShortcutDefinitions)
+					);
+					if (result)
+					{
+						output.Shortcuts[result->first] = result->second;
+						break;
+					}
+				} {
+					auto result = ReadListPair<EditorAction, ImGuiKeyChord>(
+						lineNum, line, start,
+						MakeConverter(EditorActionDefinitions),
+						MakeChordConverter<ImGuiKey, ImGuiKeyChord>(ShortcutDefinitions)
+					);
+					if (result)
+					{
+						output.Shortcuts[result->first] = result->second;
+						break;
+					}
+				} {
+					auto result = ReadListPair<SelectionAction, ImGuiKeyChord>(
+						lineNum, line, start,
+						MakeConverter(SelectionActionDefinitions),
+						MakeChordConverter<ImGuiKey, ImGuiKeyChord>(ShortcutDefinitions)
+					);
+					if (result)
+					{
+						output.Shortcuts[result->first] = result->second;
+						break;
+					}
 					return std::unexpected<YAMLError>(result.error());
-
-				output.Shortcuts[result->first] = result->second;
-			}	break;
+				} 
+			}
 			}
 
 			auto end = std::find_if(line.rbegin(), line.rend(), [](char c) { return !std::isspace(c); });
