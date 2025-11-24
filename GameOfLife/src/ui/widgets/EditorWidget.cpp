@@ -14,8 +14,6 @@ gol::SimulationControlResult gol::EditorWidget::Update(GameState state)
 			result = update;
 	};
 	
-	ImGui::Text("Editor");
-
 	updateIfNone(m_CopyButton.Update(state));
 	updateIfNone(m_CutButton.Update(state));
 	if (result)

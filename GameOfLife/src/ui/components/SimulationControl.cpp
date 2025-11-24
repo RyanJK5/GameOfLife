@@ -91,10 +91,10 @@ gol::SimulationControlResult gol::SimulationControl::Update(GameState state)
     
     FillResults(result, m_VersionManager.Update(state));
     FillResults(result, m_ExecutionWidget.Update(state));
+    FillResults(result, m_EditorWidget.Update(state));
     FillResults(result, m_ResizeWidget.Update(state));
     FillResults(result, m_StepWidget.Update(state));
     FillResults(result, m_DelayWidget.Update(state));
-    FillResults(result, m_EditorWidget.Update(state));
     FillResults(result, m_SelectionShortcuts.Update(state));
 
     ImGui::End();
