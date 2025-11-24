@@ -161,7 +161,8 @@
       <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLEW\glew-2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;src\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLEW\glew-2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\ImGUI;$(SolutionDir)Dependencies\GLM;$(SolutionDir)\Dependencies\ImGUI\imgui;$(SolutionDir)\GameOfLife\src;$(SolutionDir)\GameOfLife\src\graphics;$(SolutionDir)\GameOfLife\src\misc;$(SolutionDir)\GameOfLife\src\ui;$(SolutionDir)\GameOfLife\src\ui\components;$(SolutionDir)\GameOfLife\src\ui\widgets;$(SolutionDir)\Dependencies\FontAwesome;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

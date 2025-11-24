@@ -12,7 +12,7 @@ int main()
     }
     catch (const std::exception& e)
     {
-        std::cerr << e.what() << std::endl;
-        return -1;
+        std::cerr << "Fatal Error: " << e.what() << std::endl;
+        throw;
     }
 }

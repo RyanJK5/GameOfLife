@@ -89,46 +89,70 @@ std::optional<gol::VersionChange> gol::SelectionManager::Copy(GameGrid& grid)
     if (!m_Selected)
         return std::nullopt;
 
-    ImGui::SetClipboardText(
-        reinterpret_cast<const char*>(
-            RLEEncoder::EncodeRegion<uint32_t>(*m_Selected, { 0, 0, m_Selected->Width(), m_Selected->Height() }).data()
-            )
-    );
-
-    return Deselect(grid);
-}
-
-std::expected<gol::VersionChange, int32_t> gol::SelectionManager::Paste(std::optional<Vec2> gridPos, uint32_t warnThreshold)
-{
-    if (!gridPos)
-        gridPos = m_AnchorSelection;
-    if (!gridPos)
-        gridPos = { 0, 0 };
-    
-    auto decodeResult = RLEEncoder::DecodeRegion<uint32_t>(ImGui::GetClipboardText(), warnThreshold);
-    if (!decodeResult)
-        return std::unexpected { decodeResult.error() };
-
-    m_Selected = *decodeResult;
-    m_AnchorSelection = gridPos;
-    m_SentinelSelection = { gridPos->X + m_Selected->Width() - 1, gridPos->Y + m_Selected->Height() - 1 };
-    return VersionChange
-    {
-        .Action = SelectionAction::Paste,
-        .SelectionBounds = SelectionBounds(),
-        .CellsInserted = m_Selected->Data(),
-        .CellsDeleted = {}
-    };
-}
-
-std::optional<gol::VersionChange> gol::SelectionManager::Delete()
-{
-    return Delete(false);
+    auto encodeType = RLEEncoder::SelectStorageType(m_Selected->Width() * m_Selected->Height());
+    if (std::get_if<uint8_t>(&encodeType))
+		return Copy<uint8_t>(grid, false);
+	else if (std::get_if<uint16_t>(&encodeType))
+        return Copy<uint16_t>(grid, false);
+    else if (std::get_if<uint32_t>(&encodeType))
+        return Copy<uint32_t>(grid, false);
+    else
+		return Copy<uint64_t>(grid, false);
 }
 
 std::optional<gol::VersionChange> gol::SelectionManager::Cut()
 {
-    return Delete(true);
+    auto encodeType = RLEEncoder::SelectStorageType(m_Selected->Width() * m_Selected->Height());
+    if (std::get_if<uint8_t>(&encodeType))
+        return Cut<uint8_t>(false);
+    else if (std::get_if<uint16_t>(&encodeType))
+        return Cut<uint16_t>(false);
+    else if (std::get_if<uint32_t>(&encodeType))
+        return Cut<uint32_t>(false);
+    else
+        return Cut<uint64_t>(false);
+}
+
+std::expected<gol::VersionChange, uint32_t> gol::SelectionManager::Paste(std::optional<Vec2> gridPos, uint32_t warnThreshold)
+{
+	auto result8 =  Paste<uint8_t>(gridPos,  static_cast<uint8_t>(warnThreshold), false);
+    if (result8 || result8.error() != std::numeric_limits<uint8_t>::max())
+        return result8;
+	
+    auto result16 = Paste<uint16_t>(gridPos, static_cast<uint16_t>(warnThreshold), false);
+    if (result16 || result16.error() != std::numeric_limits<uint16_t>::max())
+		return result16;
+    
+    auto result32 = Paste<uint32_t>(gridPos, warnThreshold, false);
+    if (result32 || result32.error() != std::numeric_limits<uint32_t>::max())
+        return result32;
+	
+    auto result64 = Paste<uint64_t>(gridPos, warnThreshold, false);
+    if (result64)
+        return result64;
+	
+    return std::unexpected { result64.error() };
+}
+
+std::optional<gol::VersionChange> gol::SelectionManager::Delete()
+{
+    if (!m_Selected)
+        return std::nullopt;
+
+    auto bounds = SelectionBounds();
+    auto retValue = VersionChange
+    {
+        .Action = SelectionAction::Delete,
+        .SelectionBounds = SelectionBounds(),
+        .CellsInserted = {},
+        .CellsDeleted = m_Selected->Data()
+    };
+
+    m_Selected = std::nullopt;
+    m_AnchorSelection = std::nullopt;
+    m_SentinelSelection = std::nullopt;
+
+    return retValue;
 }
 
 std::optional<gol::VersionChange> gol::SelectionManager::Rotate(bool clockwise)
@@ -189,7 +213,7 @@ std::optional<gol::VersionChange> gol::SelectionManager::HandleAction(SelectionA
 {
     switch (action)
     {
-    using enum SelectionAction;
+        using enum SelectionAction;
     case Copy:       return this->Copy(grid);
     case Cut:        return this->Cut();
     case Delete:     return this->Delete();
@@ -341,34 +365,6 @@ bool gol::SelectionManager::CanDrawLargeSelection() const
 bool gol::SelectionManager::CanDrawGrid() const
 {
     return m_Selected.has_value();
-}
-
-std::optional<gol::VersionChange> gol::SelectionManager::Delete(bool cut)
-{
-    if (!m_Selected)
-        return std::nullopt;
-
-    auto bounds = SelectionBounds();
-    auto retValue = VersionChange
-    {
-        .Action = SelectionAction::Delete,
-        .SelectionBounds = SelectionBounds(),
-        .CellsInserted = {},
-        .CellsDeleted = m_Selected->Data()
-    };
-
-    if (cut)
-        ImGui::SetClipboardText(
-            reinterpret_cast<const char*>(
-                RLEEncoder::EncodeRegion<uint32_t>(*m_Selected, { 0, 0, m_Selected->Width(), m_Selected->Height() }).data()
-                )
-        );
-
-    m_Selected = std::nullopt;
-    m_AnchorSelection = std::nullopt;
-    m_SentinelSelection = std::nullopt;
-
-    return retValue;
 }
 
 void gol::SelectionManager::SetSelectionBounds(const Rect& bounds)

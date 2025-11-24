@@ -13,8 +13,7 @@
 
 namespace gol::RLEEncoder
 {
-	
-	template <std::integral StorageType>
+	template <std::unsigned_integral StorageType>
 	static constexpr StorageType FormatNumber(StorageType value)
 	{
 		constexpr StorageType getData   = 0b00111111;
@@ -30,10 +29,21 @@ namespace gol::RLEEncoder
 		return result;
 	}
 
-	template <std::integral StorageType>
+	template <std::unsigned_integral StorageType>
+	static constexpr std::vector<StorageType> FormatDimension(uint32_t dim)
+	{
+		uint32_t formatted = FormatNumber<uint32_t>(dim);
+		std::vector<StorageType> result;
+		for (int8_t i = sizeof(uint32_t) - sizeof(StorageType); i >= 0; i -= sizeof(StorageType))
+			result.push_back(formatted >> (i * 8U));
+		std::ranges::reverse(result);
+		return result;
+	}
+
+	template <std::unsigned_integral StorageType>
 	static constexpr StorageType ReadNumber(const char* value)
 	{
-		constexpr int8_t getData = 0b00111111;
+		constexpr uint8_t getData = 0b00111111;
 		StorageType result = 0b0;
 
 		for (int8_t i = 0; i < sizeof(StorageType); i++)
@@ -43,14 +53,14 @@ namespace gol::RLEEncoder
 		return result;
 	}
 
-	template <std::integral StorageType>
+	template <std::unsigned_integral StorageType>
 	inline std::vector<StorageType> EncodeRegion(const GameGrid& grid, const Rect& region)
 	{
 		constexpr StorageType largestValue = std::numeric_limits<StorageType>::max() >> (2 * sizeof(StorageType));
 
-		std::vector<StorageType> encoded;
-		encoded.emplace_back(FormatNumber<StorageType>(region.Width));
-		encoded.emplace_back(FormatNumber<StorageType>(region.Height));
+		auto encoded = std::vector<StorageType> {};
+		encoded.append_range(FormatDimension<StorageType>(region.Width));
+		encoded.append_range(FormatDimension<StorageType>(region.Height));
 		encoded.emplace_back(FormatNumber<StorageType>('0'));
 
 		gol::Vec2 runStart = { region.X, region.Y - 1 };
@@ -69,7 +79,7 @@ namespace gol::RLEEncoder
 				if (count > 0)
 					encoded.emplace_back(FormatNumber<StorageType>(count));
 				else if (first)
-					encoded[2] = FormatNumber<StorageType>('1');
+					encoded[2 * sizeof(uint32_t) / sizeof(StorageType)] = FormatNumber<StorageType>('1');
 				running = true;
 				runStart = pos;
 			}
@@ -109,32 +119,38 @@ namespace gol::RLEEncoder
 		return { '\0' };
 	}
 
-	template <std::integral StorageType>
+	template <std::unsigned_integral StorageType>
 	inline std::expected<gol::GameGrid, StorageType> DecodeRegion(const char* data, StorageType warnThreshold)
 	{
 		if (data[0] == '\0')
 			return {};
 
-		StorageType width = ReadNumber<StorageType>(data);
-		StorageType height = ReadNumber<StorageType>(data + sizeof(StorageType));
+		uint32_t width = ReadNumber<uint32_t>(data);
+		uint32_t height = ReadNumber<uint32_t>(data + sizeof(uint32_t));
+		if (width * height > std::numeric_limits<StorageType>::max() >> 2)
+		{
+			return std::unexpected { std::numeric_limits<StorageType>::max() };
+		}
 
-		bool running = ReadNumber<StorageType>(data + 2 * sizeof(StorageType)) == '1';
+		bool running = ReadNumber<StorageType>(data + 2 * sizeof(uint32_t)) == '1';
 		StorageType xPtr = 0;
 		StorageType yPtr = 0;
 
 		GameGrid result(width, height);
 
 		StorageType warnCount = 0;
-		for (size_t i = 3 * sizeof(StorageType); data[i] != '\0'; i += sizeof(StorageType))
+		for (size_t i = 2 * sizeof(uint32_t) + sizeof(StorageType); data[i] != '\0'; i += sizeof(StorageType))
 		{
 			StorageType count = ReadNumber<StorageType>(data + i);
-			warnCount += count;
+			if (running)
+				warnCount += count;
 			if (warnCount >= warnThreshold)
+			{
+				running = !running;
 				continue;
+			}
 
-			if (!running)
-				running = true;
-			else
+			if (running)
 			{
 				for (StorageType j = 0; j < count; j++)
 				{
@@ -144,9 +160,9 @@ namespace gol::RLEEncoder
 						true
 					);
 				}
-				running = false;
 			}
 
+			running = !running;
 			xPtr += (yPtr + count) / height;
 			yPtr = (yPtr + count) % height;
 		}
@@ -154,6 +170,17 @@ namespace gol::RLEEncoder
 		if (warnCount >= warnThreshold)
 			return std::unexpected { warnCount };
 		return std::expected<GameGrid, StorageType> { std::move(result) };
+	}
+
+	constexpr std::variant<uint8_t, uint16_t, uint32_t, uint64_t> SelectStorageType(uint64_t count)
+	{
+		if (count <= std::numeric_limits<uint8_t>::max() >> 2)
+			return uint8_t {};
+		else if (count <= std::numeric_limits<uint16_t>::max() >> 2)
+			return uint16_t {};
+		else if (count <= std::numeric_limits<uint32_t>::max() >> 2)
+			return uint32_t {};
+		return uint64_t {};
 	}
 }
 

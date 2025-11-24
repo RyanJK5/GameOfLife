@@ -25,7 +25,7 @@
 gol::SimulationEditor::SimulationEditor(Size2 windowSize, Size2 gridSize)
     : m_Grid(gridSize)
     , m_Graphics(std::filesystem::path("resources") / "shader" / "default.shader", windowSize.Width, windowSize.Height)
-    , m_PasteWarning("Warning")
+    , m_PasteWarning("Paste Warning")
 { }   
 
 gol::SimulationState gol::SimulationEditor::Update(const SimulationControlResult& args)
@@ -274,7 +274,7 @@ gol::SimulationState gol::SimulationEditor::UpdateState(const SimulationControlR
             auto gridPos = CursorGridPos();
             if (gridPos)
                 m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-            auto pasteResult = m_SelectionManager.Paste(gridPos, 100000U);
+            auto pasteResult = m_SelectionManager.Paste(gridPos, 1000000U);
             if (pasteResult)
 				m_VersionManager.TryPushChange(*pasteResult);
             else if (pasteResult.error() != 0)
