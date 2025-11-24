@@ -3,6 +3,7 @@
 
 #include <concepts>
 #include <cstdint>
+#include <expected>
 #include <limits>
 #include <stdexcept>
 #include <vector>
@@ -109,7 +110,7 @@ namespace gol::RLEEncoder
 	}
 
 	template <std::integral StorageType>
-	inline gol::GameGrid DecodeRegion(const char* data)
+	inline std::expected<gol::GameGrid, StorageType> DecodeRegion(const char* data, StorageType warnThreshold)
 	{
 		if (data[0] == '\0')
 			return {};
@@ -123,9 +124,13 @@ namespace gol::RLEEncoder
 
 		GameGrid result(width, height);
 
+		StorageType warnCount = 0;
 		for (size_t i = 3 * sizeof(StorageType); data[i] != '\0'; i += sizeof(StorageType))
 		{
 			StorageType count = ReadNumber<StorageType>(data + i);
+			warnCount += count;
+			if (warnCount >= warnThreshold)
+				continue;
 
 			if (!running)
 				running = true;
@@ -146,7 +151,9 @@ namespace gol::RLEEncoder
 			yPtr = (yPtr + count) % height;
 		}
 
-		return result;
+		if (warnCount >= warnThreshold)
+			return std::unexpected { warnCount };
+		return std::expected<GameGrid, StorageType> { std::move(result) };
 	}
 }
 

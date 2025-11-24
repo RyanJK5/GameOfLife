@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/fwd.hpp>
 #include <imgui/imgui.h>
+#include <locale>
 #include <optional>
 #include <string>
 #include <utility>
@@ -15,19 +16,32 @@
 #include "GameGrid.h"
 #include "GraphicsHandler.h"
 #include "Graphics2D.h"
+#include "Logging.h"
 #include "SimulationControlResult.h"
 #include "SimulationEditor.h"
 #include "VersionManager.h"
-#include "Logging.h"
+#include "WarnWindow.h"
 
 gol::SimulationEditor::SimulationEditor(Size2 windowSize, Size2 gridSize)
     : m_Grid(gridSize)
     , m_Graphics(std::filesystem::path("resources") / "shader" / "default.shader", windowSize.Width, windowSize.Height)
+    , m_PasteWarning("Warning")
 { }   
 
 gol::GameState gol::SimulationEditor::Update(const SimulationControlResult& args)
 {
     auto graphicsArgs = GraphicsHandlerArgs { .ViewportBounds = ViewportBounds(), .GridSize = m_Grid.Size() };
+
+    auto pasteWarnResult = m_PasteWarning.Update();
+    if (pasteWarnResult == WarnWindowState::Success)
+    {
+        auto pasteResult = m_SelectionManager.Paste(CursorGridPos(), std::numeric_limits<uint32_t>::max());
+        if (pasteResult)
+            m_VersionManager.PushChange(*pasteResult);
+        m_PasteWarning.Active = false;
+    }
+    else if (pasteWarnResult == WarnWindowState::Failure)
+        m_PasteWarning.Active = false;
 
     UpdateViewport();
     UpdateDragState();
@@ -252,8 +266,25 @@ gol::GameState gol::SimulationEditor::UpdateState(const SimulationControlResult&
     if (auto* action = std::get_if<SelectionAction>(&*result.Action))
     {
         if (*action == SelectionAction::Paste)
+        {
             m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-        m_VersionManager.TryPushChange(m_SelectionManager.HandleAction(*action, m_Grid, CursorGridPos(), result.NudgeSize));
+            auto pasteResult = m_SelectionManager.Paste(CursorGridPos(), 100000U);
+            if (pasteResult)
+				m_VersionManager.TryPushChange(*pasteResult);
+            else if (pasteResult.error() != 0)
+            {
+                m_PasteWarning.Active = true;
+                m_PasteWarning.Message = std::format(
+                    std::locale(""),
+                    "Your selection ({:L} cells) is too large\n"
+                    "to paste without potential performance issues.\n"
+                    "Are you sure you want to continue?"
+                    , pasteResult.error())
+                ;
+            }
+            return result.State;
+        }
+        m_VersionManager.TryPushChange(m_SelectionManager.HandleAction(*action, m_Grid, result.NudgeSize));
     }
 
     return result.State;
@@ -285,6 +316,9 @@ gol::GameState gol::SimulationEditor::ResizeGrid(const gol::SimulationControlRes
 
 void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)
 {
+    if (ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId))
+        return;
+
     auto result = m_SelectionManager.UpdateSelectionArea(m_Grid, gridPos);
     if (result.BeginSelection)
     {

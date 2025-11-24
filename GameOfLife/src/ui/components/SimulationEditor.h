@@ -11,6 +11,7 @@
 #include "SelectionManager.h"
 #include "SimulationControlResult.h"
 #include "VersionManager.h"
+#include "WarnWindow.h"
 
 namespace gol
 {
@@ -54,6 +55,8 @@ namespace gol
 
 		GraphicsHandler m_Graphics;
 		RectF m_WindowBounds;
+
+		WarnWindow m_PasteWarning;
 
 		glm::vec2 m_DeltaLast = { 0, 0 };
 		double m_TickDelayMs = DefaultTickDelayMs;

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <expected>
 #include <imgui/imgui.h>
 #include <optional>
 #include <set>
@@ -87,17 +88,20 @@ std::optional<gol::VersionChange> gol::SelectionManager::Copy(GameGrid& grid)
     return Deselect(grid);
 }
 
-std::optional<gol::VersionChange> gol::SelectionManager::Paste(std::optional<Vec2> gridPos)
+std::expected<gol::VersionChange, int32_t> gol::SelectionManager::Paste(std::optional<Vec2> gridPos, uint32_t warnThreshold)
 {
     if (!gridPos)
         gridPos = m_AnchorSelection;
     if (!gridPos)
-        return std::nullopt;
+        return std::unexpected { 0 };
+    
+    auto decodeResult = RLEEncoder::DecodeRegion<uint32_t>(ImGui::GetClipboardText(), warnThreshold);
+    if (!decodeResult)
+        return std::unexpected { decodeResult.error() };
 
-    m_Selected = RLEEncoder::DecodeRegion<uint32_t>(ImGui::GetClipboardText());
+    m_Selected = *decodeResult;
     m_AnchorSelection = gridPos;
     m_SentinelSelection = { gridPos->X + m_Selected->Width() - 1, gridPos->Y + m_Selected->Height() - 1 };
-
     return VersionChange
     {
         .Action = SelectionAction::Paste,
@@ -171,14 +175,13 @@ std::optional<gol::VersionChange> gol::SelectionManager::Nudge(Vec2 translation)
     };
 }
 
-std::optional<gol::VersionChange> gol::SelectionManager::HandleAction(SelectionAction action, GameGrid& grid, std::optional<Vec2> gridPos, int32_t nudgeSize)
+std::optional<gol::VersionChange> gol::SelectionManager::HandleAction(SelectionAction action, GameGrid& grid, int32_t nudgeSize)
 {
     switch (action)
     {
     using enum SelectionAction;
     case Copy:       return this->Copy(grid);
     case Cut:        return this->Cut();
-    case Paste:      return this->Paste(gridPos);
     case Delete:     return this->Delete();
     case Deselect:   return this->Deselect(grid);
     case NudgeLeft:  return Nudge({ -nudgeSize, 0 });

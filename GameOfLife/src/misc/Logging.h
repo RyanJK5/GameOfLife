@@ -14,12 +14,12 @@
 		statement;\
 		gol::LogGLErrors()
 	#define ERROR(str, ...) gol::Log(gol::LogCode::Error, std::source_location::current(), str, __VA_ARGS__)
-	#define WARNING(str, ...) gol::Log(gol::LogCode::Error, std::source_location::current(), str, __VA_ARGS__)
+	#define WARN(str, ...) gol::Log(gol::LogCode::Error, std::source_location::current(), str, __VA_ARGS__)
 	#define INFO(str, ...) gol::Log(gol::LogCode::Info, std::source_location::current(), str, __VA_ARGS__)
 #else
 	#define GL_DEBUG(statement) statement
 	#define ERROR(str, ...)
-	#define WARNING(str, ...)
+	#define WARN(str, ...)
 	#define INFO(str, ...)
 #endif
 
@@ -47,7 +47,7 @@ namespace gol
 	template <typename... Args>
 	inline void Log(LogCode code, const std::source_location& location, std::format_string<Args...> str = "", Args&&... args)
 	{
-		if (code < Level)
+		if (code > Level)
 			return;
 		
 		std::println("{} at {}:{} in {}",

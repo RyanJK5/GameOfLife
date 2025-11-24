@@ -2,6 +2,7 @@
 #define __SelectionManager_h__
 
 #include <cstdint>
+#include <expected>
 #include <optional>
 #include <set>
 
@@ -27,7 +28,7 @@ namespace gol
 
 		std::optional<VersionChange> Copy(GameGrid& grid);
 
-		std::optional<VersionChange> Paste(std::optional<Vec2> gridPos);
+		std::expected<VersionChange, int32_t> Paste(std::optional<Vec2> gridPos, uint32_t warnThreshold);
 
 		std::optional<VersionChange> Delete();
 		
@@ -37,7 +38,7 @@ namespace gol
 
 		std::optional<VersionChange> Nudge(Vec2 translation);
 
-		std::optional<VersionChange> HandleAction(SelectionAction action, GameGrid& grid, std::optional<Vec2> gridPos, int32_t nudgeSize);
+		std::optional<VersionChange> HandleAction(SelectionAction action, GameGrid& grid, int32_t nudgeSize);
 		void HandleVersionChange(EditorAction undoRedo, GameGrid& grid, const VersionChange& change);
 
 		Rect SelectionBounds() const;

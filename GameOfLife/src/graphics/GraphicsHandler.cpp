@@ -91,10 +91,12 @@ void gol::GraphicsHandler::RescaleFrameBuffer(Size2 windowSize)
     GL_DEBUG(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowSize.Width, windowSize.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
     GL_DEBUG(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     GL_DEBUG(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    BindFrameBuffer();
     GL_DEBUG(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_Texture, 0));
     GL_DEBUG(glBindRenderbuffer(GL_RENDERBUFFER, m_renderBuffer));
     GL_DEBUG(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, windowSize.Width, windowSize.Height));
     GL_DEBUG(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_renderBuffer));
+    UnbindFrameBuffer();
 }
 
 void gol::GraphicsHandler::BindFrameBuffer() const
@@ -232,4 +234,4 @@ void gol::GraphicsHandler::DrawSelection(const Rect& region, const GraphicsHandl
     GL_DEBUG(glDrawElements(GL_LINES, 8, GL_UNSIGNED_BYTE, nullptr));
 
     UnbindFrameBuffer();
-}
+}////////////////////////////////////////////////////////////////
