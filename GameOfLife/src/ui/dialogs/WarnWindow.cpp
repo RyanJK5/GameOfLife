@@ -4,20 +4,15 @@
 
 #include "ActionButton.h"
 #include "GameEnums.h"
+#include "PopupWindow.h"
 #include "WarnWindow.h"
 
-gol::WarnWindowState gol::WarnWindow::Update()
+gol::PopupWindowState gol::WarnWindow::ShowButtons() const
 {
-	if (!Active)
-		return WarnWindowState::None;
-
-	ImGui::OpenPopup(m_Title.c_str());
-	ImGui::BeginPopupModal(m_Title.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
-
 	constexpr int32_t height = ActionButton<EditorAction, false>::DefaultButtonHeight;
 	ImGui::Text(Message.c_str());
-	bool yes = ImGui::Button("Yes", 
-	{ 
+	bool yes = ImGui::Button("Yes",
+	{
 		ImGui::GetContentRegionAvail().x,
 		height
 	});
@@ -26,12 +21,10 @@ gol::WarnWindowState gol::WarnWindow::Update()
 		ImGui::GetContentRegionAvail().x,
 		height
 	});
-	
-	ImGui::EndPopup();
 
 	if (yes)
-		return WarnWindowState::Success;
+		return PopupWindowState::Success;
 	if (no)
-		return WarnWindowState::Failure;
-	return WarnWindowState::None;
+		return PopupWindowState::Failure;
+	return PopupWindowState::None;
 }

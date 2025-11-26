@@ -26,6 +26,7 @@ gol::SimulationEditor::SimulationEditor(Size2 windowSize, Size2 gridSize)
     : m_Grid(gridSize)
     , m_Graphics(std::filesystem::path("resources") / "shader" / "default.shader", windowSize.Width, windowSize.Height)
     , m_PasteWarning("Paste Warning")
+    , m_FileErrorWindow("File Error")
 { }   
 
 gol::EditorState gol::SimulationEditor::Update(const SimulationControlResult& args)
@@ -33,15 +34,13 @@ gol::EditorState gol::SimulationEditor::Update(const SimulationControlResult& ar
     auto graphicsArgs = GraphicsHandlerArgs { .ViewportBounds = ViewportBounds(), .GridSize = m_Grid.Size() };
 
     auto pasteWarnResult = m_PasteWarning.Update();
-    if (pasteWarnResult == WarnWindowState::Success)
+    if (pasteWarnResult == PopupWindowState::Success)
     {
         auto pasteResult = m_SelectionManager.Paste(CursorGridPos(), std::numeric_limits<uint32_t>::max());
         if (pasteResult)
             m_VersionManager.PushChange(*pasteResult);
-        m_PasteWarning.Active = false;
     }
-    else if (pasteWarnResult == WarnWindowState::Failure)
-        m_PasteWarning.Active = false;
+    m_FileErrorWindow.Update();
 
     UpdateViewport();
     UpdateDragState();
@@ -272,6 +271,19 @@ gol::SimulationState gol::SimulationEditor::UpdateState(const SimulationControlR
         case Redo:
             UpdateVersion(result);
             return result.State;
+        case Save:
+            if (!m_SelectionManager.Save(m_Grid, *result.FilePath))
+            {
+                m_FileErrorWindow.Active = true;
+                m_FileErrorWindow.Message = std::format(
+                    "Failed to save file to \n{}"
+                    , result.FilePath->string()
+                );
+            }
+            return result.State;
+        case Load:
+            LoadFile(result);
+            return result.State;
         }
 	}
 
@@ -279,29 +291,51 @@ gol::SimulationState gol::SimulationEditor::UpdateState(const SimulationControlR
     {
         if (*action == SelectionAction::Paste)
         {
-            auto gridPos = CursorGridPos();
-            if (gridPos)
-                m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
-            auto pasteResult = m_SelectionManager.Paste(gridPos, 1000000U);
-            if (pasteResult)
-				m_VersionManager.TryPushChange(*pasteResult);
-            else if (pasteResult.error() != 0)
-            {
-                m_PasteWarning.Active = true;
-                m_PasteWarning.Message = std::format(
-                    std::locale(""),
-                    "Your selection ({:L} cells) is too large\n"
-                    "to paste without potential performance issues.\n"
-                    "Are you sure you want to continue?"
-                    , pasteResult.error())
-                ;
-            }
+            PasteSelection();
             return result.State;
         }
         m_VersionManager.TryPushChange(m_SelectionManager.HandleAction(*action, m_Grid, result.NudgeSize));
     }
 
     return result.State;
+}
+
+void gol::SimulationEditor::PasteSelection()
+{
+    auto gridPos = CursorGridPos();
+    if (gridPos)
+        m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
+    auto pasteResult = m_SelectionManager.Paste(gridPos, 1000000U);
+    if (pasteResult)
+        m_VersionManager.TryPushChange(*pasteResult);
+    else if (pasteResult.error() != 0)
+    {
+        m_PasteWarning.Active = true;
+        m_PasteWarning.Message = std::format(
+            std::locale(""),
+            "Your selection ({:L} cells) is too large\n"
+            "to paste without potential performance issues.\n"
+            "Are you sure you want to continue?"
+            , pasteResult.error())
+            ;
+    }
+}
+
+void gol::SimulationEditor::LoadFile(const gol::SimulationControlResult& result)
+{
+    m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
+
+    auto loadResult = m_SelectionManager.Load(*result.FilePath);
+    if (loadResult)
+        m_VersionManager.PushChange(*loadResult);
+    else
+    {
+        m_FileErrorWindow.Active = true;
+        m_FileErrorWindow.Message = std::format(
+            "Failed to load file:\n{}"
+            , loadResult.error()
+        );
+    }
 }
 
 gol::SimulationState gol::SimulationEditor::ResizeGrid(const gol::SimulationControlResult& result)

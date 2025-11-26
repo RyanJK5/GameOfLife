@@ -38,7 +38,9 @@ namespace gol
 	{
 		Resize,
 		Undo,
-		Redo
+		Redo,
+		Save,
+		Load
 	};
 
 	enum class SelectionAction 
@@ -73,7 +75,9 @@ namespace gol
 		inline const std::unordered_map<std::string_view, EditorAction> EditorActionDefinitions = {
 			{ "resize",      EditorAction::Resize     },
 			{ "undo",        EditorAction::Undo       },
-			{ "redo",        EditorAction::Redo       }
+			{ "redo",        EditorAction::Redo       },
+			{ "save",        EditorAction::Save       },
+			{ "load",        EditorAction::Load       },
 		};
 		inline const std::unordered_map<std::string_view, SelectionAction> SelectionActionDefinitions = {
 			{ "rotate",      SelectionAction::Rotate     },

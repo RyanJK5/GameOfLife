@@ -1,15 +1,21 @@
 #ifndef __RLEEncoder_h__
 #define __RLEEncoder_h__
 
+#include <algorithm>
 #include <concepts>
 #include <cstdint>
 #include <expected>
+#include <filesystem>
 #include <limits>
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <variant>
 #include <vector>
 
 #include "GameGrid.h"
 #include "Graphics2D.h"
+#include "Logging.h"
 
 namespace gol::RLEEncoder
 {
@@ -30,12 +36,12 @@ namespace gol::RLEEncoder
 	}
 
 	template <std::unsigned_integral StorageType>
-	static constexpr std::vector<StorageType> FormatDimension(uint32_t dim)
+	static constexpr std::vector<StorageType> FormatDimension(int32_t dim)
 	{
 		uint32_t formatted = FormatNumber<uint32_t>(dim);
 		std::vector<StorageType> result;
-		for (int8_t i = sizeof(uint32_t) - sizeof(StorageType); i >= 0; i -= sizeof(StorageType))
-			result.push_back(formatted >> (i * 8U));
+		for (int8_t i = sizeof(int32_t) - sizeof(StorageType); i >= 0; i -= sizeof(StorageType))
+			result.push_back(formatted >> (i * 8));
 		std::ranges::reverse(result);
 		return result;
 	}
@@ -54,22 +60,28 @@ namespace gol::RLEEncoder
 	}
 
 	template <std::unsigned_integral StorageType>
-	inline std::vector<StorageType> EncodeRegion(const GameGrid& grid, const Rect& region)
+	inline std::vector<StorageType> EncodeRegion(const GameGrid& grid, const Rect& region, Vec2 offset)
 	{
 		constexpr StorageType largestValue = std::numeric_limits<StorageType>::max() >> (2 * sizeof(StorageType));
 
 		auto encoded = std::vector<StorageType> {};
+		encoded.append_range(FormatDimension<StorageType>(std::abs(offset.X)));
+		encoded.append_range(FormatDimension<StorageType>(std::abs(offset.Y)));
 		encoded.append_range(FormatDimension<StorageType>(region.Width));
 		encoded.append_range(FormatDimension<StorageType>(region.Height));
-		encoded.emplace_back(FormatNumber<StorageType>('0'));
+		encoded.push_back(FormatNumber<StorageType>('0'));
+		encoded.push_back(FormatNumber<StorageType>(offset.X >= 0 ? '0' : '1'));
+		encoded.push_back(FormatNumber<StorageType>(offset.Y >= 0 ? '0' : '1'));
 
-		gol::Vec2 runStart = { region.X, region.Y - 1 };
+		auto runStart = Vec2 { region.X, region.Y - 1 } - offset;
 		bool running = false;
 		bool first = true;
-		for (const auto& pos : grid.Data())
+		for (auto pos : grid.Data())
 		{
 			if (!region.InBounds(pos))
 				continue;
+
+			pos -= offset;
 
 			if (!running)
 			{
@@ -79,20 +91,20 @@ namespace gol::RLEEncoder
 				if (count > 0)
 					encoded.emplace_back(FormatNumber<StorageType>(count));
 				else if (first)
-					encoded[2 * sizeof(uint32_t) / sizeof(StorageType)] = FormatNumber<StorageType>('1');
+					encoded[4 * sizeof(uint32_t) / sizeof(StorageType)] = FormatNumber<StorageType>('1');
 				running = true;
 				runStart = pos;
 			}
 
 			first = false;
-			gol::Vec2 nextPos = { pos.X, pos.Y + 1 };
-			if (nextPos.Y >= region.Y + region.Height)
+			auto nextPos = Vec2 { pos.X, pos.Y + 1 };
+			if (nextPos.Y >= region.Y + region.Height - offset.Y)
 			{
 				nextPos.X++;
 				nextPos.Y = region.Y;
 			}
 
-			if (!region.InBounds(nextPos) || grid.Data().find(nextPos) == grid.Data().end())
+			if (!region.InBounds(nextPos + offset) || grid.Data().find(nextPos + offset) == grid.Data().end())
 			{
 				StorageType count = (region.Height * (pos.X - runStart.X) + pos.Y - runStart.Y) + 1;
 				if (count > largestValue)
@@ -104,10 +116,13 @@ namespace gol::RLEEncoder
 		}
 		if (!running)
 		{
-			gol::Vec2 pos = region.LowerRight();
+			gol::Vec2 pos = region.LowerRight() - offset;
 			StorageType count = (region.Height * (pos.X - 1 - runStart.X) + pos.Y - runStart.Y) - 1;
 			if (count > largestValue)
+			{
+				ERROR("{} * {} = {} > {}", region.Width, region.Height, region.Width * region.Height, largestValue);
 				throw std::invalid_argument("Specified region contains data that is too large");
+			}
 			encoded.push_back(FormatNumber<StorageType>(count));
 		}
 
@@ -119,27 +134,42 @@ namespace gol::RLEEncoder
 		return { '\0' };
 	}
 
+	struct DecodeResult
+	{
+		GameGrid Grid;
+		Vec2 Offset;
+	};
+
 	template <std::unsigned_integral StorageType>
-	inline std::expected<gol::GameGrid, StorageType> DecodeRegion(const char* data, StorageType warnThreshold)
+	inline std::expected<DecodeResult, StorageType> DecodeRegion(const char* data, StorageType warnThreshold)
 	{
 		if (data[0] == '\0')
 			return {};
 
-		uint32_t width = ReadNumber<uint32_t>(data);
-		uint32_t height = ReadNumber<uint32_t>(data + sizeof(uint32_t));
-		if (width * height > std::numeric_limits<StorageType>::max() >> 2)
+		auto offset = Vec2
 		{
-			return std::unexpected { std::numeric_limits<StorageType>::max() };
-		}
+			static_cast<int32_t>(ReadNumber<uint32_t>(data)),
+			static_cast<int32_t>(ReadNumber<uint32_t>(data + sizeof(uint32_t)))
+		};
 
-		bool running = ReadNumber<StorageType>(data + 2 * sizeof(uint32_t)) == '1';
+		auto width  = static_cast<int32_t>(ReadNumber<uint32_t>(data + sizeof(uint32_t) * 2));
+		auto height = static_cast<int32_t>(ReadNumber<uint32_t>(data + sizeof(uint32_t) * 3));
+		if (width * height > (std::numeric_limits<StorageType>::max() >> (2 * sizeof(StorageType))))
+			return std::unexpected { std::numeric_limits<StorageType>::max() };
+
+		bool running = ReadNumber<StorageType>(data + 4 * sizeof(uint32_t)) == '1';
 		StorageType xPtr = 0;
 		StorageType yPtr = 0;
+		
+		if (ReadNumber<StorageType>(data + sizeof(StorageType) + 4 * sizeof(uint32_t)) == '1')
+			offset.X = -offset.X;
+		if (ReadNumber<StorageType>(data + 2 * sizeof(StorageType) + 4 * sizeof(uint32_t)) == '1')
+			offset.Y = -offset.Y;
 
-		GameGrid result(width, height);
+		auto result = GameGrid { width, height };
 
 		StorageType warnCount = 0;
-		for (size_t i = 2 * sizeof(uint32_t) + sizeof(StorageType); data[i] != '\0'; i += sizeof(StorageType))
+		for (size_t i = 4 * sizeof(uint32_t) + 3 * sizeof(StorageType); data[i] != '\0'; i += sizeof(StorageType))
 		{
 			StorageType count = ReadNumber<StorageType>(data + i);
 			if (running)
@@ -169,19 +199,19 @@ namespace gol::RLEEncoder
 
 		if (warnCount >= warnThreshold)
 			return std::unexpected { warnCount };
-		return std::expected<GameGrid, StorageType> { std::move(result) };
+		return DecodeResult { std::move(result), offset };
 	}
 
-	constexpr std::variant<uint8_t, uint16_t, uint32_t, uint64_t> SelectStorageType(uint64_t count)
-	{
-		if (count <= std::numeric_limits<uint8_t>::max() >> 2)
-			return uint8_t {};
-		else if (count <= std::numeric_limits<uint16_t>::max() >> 2)
-			return uint16_t {};
-		else if (count <= std::numeric_limits<uint32_t>::max() >> 2)
-			return uint32_t {};
-		return uint64_t {};
-	}
+	std::string EncodeRegion(const GameGrid& grid, const Rect& region, Vec2 offset = { 0, 0 } );
+
+	std::expected<DecodeResult, uint32_t> DecodeRegion(const char* data, uint32_t warnThreshold);
+
+	bool WriteRegion(const GameGrid& grid, const Rect& region, 
+		const std::filesystem::path& filePath, Vec2 offset = { 0, 0 });
+
+	std::expected<DecodeResult, std::string> ReadRegion(const std::filesystem::path& filePath);
+
+	constexpr std::variant<uint8_t, uint16_t, uint32_t, uint64_t> SelectStorageType(uint64_t count);
 }
 
 #endif

@@ -6,7 +6,12 @@ shortcuts:
     reset: [Enter]
     clear: [Ctrl+Enter]
     step: [Ctrl+Right]
+
     resize: []
+    undo: [Ctrl+Z]
+    redo: [Ctrl+Y, Ctrl+Shift+Z]
+    save: [Ctrl+S]
+    load: [Ctrl+O]
 
     deselect: [Esc]
     delete: [Backspace, Delete]
@@ -14,13 +19,13 @@ shortcuts:
     cut: [Ctrl+X]
     paste: [Ctrl+V]
     rotate: [R]
-    undo: [Ctrl+Z]
-    redo: [Ctrl+Y, Ctrl+Shift+Z]
 
     nudge_left: [Left, Shift+Left]
     nudge_right: [Right, Shift+Right]
     nudge_up: [Up, Shift+Up]
     nudge_down: [Down, Shift+Down]
+    
+
 colors:
     transparent: [0, 0, 0, 0]
     background: [0.1, 0.1, 0.1, 1]

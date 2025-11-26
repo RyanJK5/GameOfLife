@@ -22,11 +22,7 @@ gol::SimulationControlResult gol::EditorWidget::Update(EditorState state)
 	updateIfNone(m_DeselectButton.Update(state));
 	updateIfNone(m_RotateButton.Update(state));
 	updateIfNone(m_UndoButton.Update(state));
-	ImGui::PushStyleVarY(ImGuiStyleVar_ItemSpacing, 30.f);
 	updateIfNone(m_RedoButton.Update(state));
 	
-	ImGui::Separator();
-	ImGui::PopStyleVar();
-
 	return { .Action = result };
 }

@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstdint>
 #include <expected>
+#include <filesystem>
 #include <imgui/imgui.h>
 #include <optional>
 #include <set>
@@ -86,52 +87,43 @@ std::optional<gol::VersionChange> gol::SelectionManager::Deselect(GameGrid& grid
 
 std::optional<gol::VersionChange> gol::SelectionManager::Copy(GameGrid& grid)
 {
-    if (!m_Selected)
+    if(!m_Selected)
         return std::nullopt;
-
-    auto encodeType = RLEEncoder::SelectStorageType(m_Selected->Width() * m_Selected->Height());
-    if (std::get_if<uint8_t>(&encodeType))
-		return Copy<uint8_t>(grid, false);
-	else if (std::get_if<uint16_t>(&encodeType))
-        return Copy<uint16_t>(grid, false);
-    else if (std::get_if<uint32_t>(&encodeType))
-        return Copy<uint32_t>(grid, false);
-    else
-		return Copy<uint64_t>(grid, false);
+    
+    ImGui::SetClipboardText(RLEEncoder::EncodeRegion(*m_Selected, { { 0, 0 }, m_Selected->Size() }).c_str());
+    return Deselect(grid);
 }
 
 std::optional<gol::VersionChange> gol::SelectionManager::Cut()
 {
-    auto encodeType = RLEEncoder::SelectStorageType(m_Selected->Width() * m_Selected->Height());
-    if (std::get_if<uint8_t>(&encodeType))
-        return Cut<uint8_t>(false);
-    else if (std::get_if<uint16_t>(&encodeType))
-        return Cut<uint16_t>(false);
-    else if (std::get_if<uint32_t>(&encodeType))
-        return Cut<uint32_t>(false);
-    else
-        return Cut<uint64_t>(false);
+    if (!m_Selected)
+		return std::nullopt;
+
+    ImGui::SetClipboardText(RLEEncoder::EncodeRegion(*m_Selected, { 0, 0, m_Selected->Width(), m_Selected->Height() }).c_str());
+    return Delete();
 }
 
 std::expected<gol::VersionChange, uint32_t> gol::SelectionManager::Paste(std::optional<Vec2> gridPos, uint32_t warnThreshold)
 {
-	auto result8 =  Paste<uint8_t>(gridPos,  static_cast<uint8_t>(warnThreshold), false);
-    if (result8 || result8.error() != std::numeric_limits<uint8_t>::max())
-        return result8;
-	
-    auto result16 = Paste<uint16_t>(gridPos, static_cast<uint16_t>(warnThreshold), false);
-    if (result16 || result16.error() != std::numeric_limits<uint16_t>::max())
-		return result16;
-    
-    auto result32 = Paste<uint32_t>(gridPos, warnThreshold, false);
-    if (result32 || result32.error() != std::numeric_limits<uint32_t>::max())
-        return result32;
-	
-    auto result64 = Paste<uint64_t>(gridPos, warnThreshold, false);
-    if (result64)
-        return result64;
-	
-    return std::unexpected { result64.error() };
+    if (!gridPos)
+        gridPos = m_AnchorSelection;
+    if (!gridPos)
+        gridPos = { 0, 0 };
+
+    auto decodeResult = RLEEncoder::DecodeRegion(ImGui::GetClipboardText(), warnThreshold);
+    if (!decodeResult)
+        return std::unexpected{ decodeResult.error() };
+
+    m_Selected = std::move(decodeResult->Grid);
+    m_AnchorSelection = gridPos;
+    m_SentinelSelection = { gridPos->X + m_Selected->Width() - 1, gridPos->Y + m_Selected->Height() - 1 };
+    return VersionChange
+    {
+        .Action = SelectionAction::Paste,
+        .SelectionBounds = SelectionBounds(),
+        .CellsInserted = m_Selected->Data(),
+        .CellsDeleted = {}
+    };
 }
 
 std::optional<gol::VersionChange> gol::SelectionManager::Delete()
@@ -207,6 +199,37 @@ std::optional<gol::VersionChange> gol::SelectionManager::Nudge(Vec2 translation)
         .SelectionBounds = SelectionBounds(),
         .NudgeTranslation = translation
     };
+}
+
+std::expected<gol::VersionChange, std::string> gol::SelectionManager::Load(const std::filesystem::path& filePath)
+{
+	auto result = RLEEncoder::ReadRegion(filePath);
+    if (!result)
+        return std::unexpected { std::move(result.error()) };
+
+    m_Selected = std::move(result->Grid);
+	m_AnchorSelection = result->Offset;
+	m_SentinelSelection = result->Offset + Vec2 { m_Selected->Width() - 1, m_Selected->Height() - 1 };
+
+    return VersionChange
+    {
+        .Action = SelectionAction::Paste,
+        .SelectionBounds = SelectionBounds(),
+        .CellsInserted = m_Selected->Data(),
+        .CellsDeleted = {}
+	};
+
+}
+
+bool gol::SelectionManager::Save(const GameGrid& grid, const std::filesystem::path& filePath) const
+{
+    if (!m_Selected)
+    {
+		auto boundingBox = grid.BoundingBox();
+        return RLEEncoder::WriteRegion(grid, boundingBox, filePath, boundingBox.Pos());
+
+    }
+    return RLEEncoder::WriteRegion(*m_Selected, Rect { { 0, 0 }, m_Selected->Size() }, filePath);
 }
 
 std::optional<gol::VersionChange> gol::SelectionManager::HandleAction(SelectionAction action, GameGrid& grid, int32_t nudgeSize)

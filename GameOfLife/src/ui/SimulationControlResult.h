@@ -2,7 +2,7 @@
 #define __ActionWidget_h__
 
 #include <cstdint>
-#include <variant>
+#include <filesystem>
 #include <optional>
 
 #include "Graphics2D.h"
@@ -18,6 +18,7 @@ namespace gol
 		std::optional<int32_t> StepCount;
 		std::optional<Size2> NewDimensions;
 		std::optional<int32_t> TickDelayMs;
+		std::optional<std::filesystem::path> FilePath;
 		int32_t NudgeSize = 0;
 	};
 }

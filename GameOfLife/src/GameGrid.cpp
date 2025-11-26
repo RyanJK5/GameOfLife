@@ -1,13 +1,15 @@
+#include <algorithm>
 #include <cstdint>
-#include <map>
+#include <functional>
+#include <limits>
 #include <optional>
 #include <set>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "GameGrid.h"
 #include "Graphics2D.h"
-#include <functional>
 
 gol::GameGrid::GameGrid(int32_t width, int32_t height)
 	: m_Width(width), m_Height(height)
@@ -32,6 +34,32 @@ bool gol::GameGrid::Dead() const
 {
 	return m_Data.size() == 0;
 }
+
+gol::Rect gol::GameGrid::BoundingBox() const
+{
+	if (Bounded())
+		return { 0, 0, m_Width, m_Height };
+
+	auto least = Vec2 { std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max() };
+	auto most = Vec2  { std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::min() };
+	for (auto&& value : m_Data)
+	{
+		least.X = std::min(least.X, value.X);
+		least.Y = std::min(least.Y, value.Y);
+
+		most.X = std::max(most.X, value.X);
+		most.Y = std::max(most.Y, value.Y);
+	}
+
+	return Rect 
+	{ 
+		least.X, 
+		least.Y, 
+		most.X - least.X + 1, 
+		most.Y - least.Y + 1 
+	};
+}
+
 
 struct Vec2Hash
 {

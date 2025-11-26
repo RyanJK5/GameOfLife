@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <optional>
 
+#include "ErrorWindow.h"
 #include "GameEnums.h"
 #include "GameGrid.h"
 #include "GraphicsHandler.h"
@@ -39,6 +40,8 @@ namespace gol
 		void DisplaySimulation();
 
 		SimulationState UpdateState(const SimulationControlResult& action);
+		void PasteSelection();
+		void LoadFile(const gol::SimulationControlResult& result);
 		gol::SimulationState ResizeGrid(const gol::SimulationControlResult& result);
 		void UpdateViewport();
 		std::optional<Vec2> CursorGridPos();
@@ -58,6 +61,7 @@ namespace gol
 		GraphicsHandler m_Graphics;
 		RectF m_WindowBounds;
 
+		ErrorWindow m_FileErrorWindow;
 		WarnWindow m_PasteWarning;
 
 		glm::vec2 m_DeltaLast = { 0, 0 };
