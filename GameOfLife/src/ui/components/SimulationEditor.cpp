@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
@@ -190,21 +191,23 @@ gol::Rect gol::SimulationEditor::ViewportBounds() const
     return WindowBounds();
 }
 
-std::optional<gol::Vec2> gol::SimulationEditor::CursorGridPos()
+std::optional<gol::Vec2> gol::SimulationEditor::ConvertToGridPos(Vec2F screenPos)
 {
-    Vec2F cursor = ImGui::GetMousePos();
-    if (!ViewportBounds().InBounds(cursor.X, cursor.Y))
+    if (!ViewportBounds().InBounds(screenPos.X, screenPos.Y))
         return std::nullopt;
 
-    glm::vec2 vec = m_Graphics.Camera.ScreenToWorldPos(cursor, ViewportBounds());
-    glm::vec2 other = m_Graphics.Camera.ScreenToWorldPos(Vec2F{ (float)ViewportBounds().X, (float)ViewportBounds().Y }, ViewportBounds());
-    vec /= glm::vec2 { DefaultCellWidth  , 
-                       DefaultCellHeight };
+    glm::vec2 vec = m_Graphics.Camera.ScreenToWorldPos(screenPos, ViewportBounds());
+    vec /= glm::vec2 { DefaultCellWidth, DefaultCellHeight };
     
     Vec2 result = { static_cast<int32_t>(std::floor(vec.x)), static_cast<int32_t>(std::floor(vec.y)) };
     if (!m_Grid.InBounds(result))
         return std::nullopt;
     return result;
+}
+
+std::optional<gol::Vec2> gol::SimulationEditor::CursorGridPos()
+{
+    return ConvertToGridPos(ImGui::GetMousePos());
 }
 
 void gol::SimulationEditor::UpdateVersion(const SimulationControlResult& args)
@@ -393,27 +396,49 @@ void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)
 
             m_EditorMode = *m_Grid.Get(gridPos.X, gridPos.Y) ? EditorMode::Delete : EditorMode::Insert;
             m_VersionManager.BeginPaintChange(gridPos, m_EditorMode == EditorMode::Insert);
+            m_LeftDeltaLast = {};
         }
         if (*m_Grid.Get(gridPos.X, gridPos.Y) != (m_EditorMode == EditorMode::Insert))
 			m_VersionManager.AddPaintChange(gridPos);
-        m_Grid.Set(gridPos.X, gridPos.Y, m_EditorMode == EditorMode::Insert);
+		
+        FillCells();
         return;
     }
     m_EditorMode = EditorMode::None;
 }
 
+void gol::SimulationEditor::FillCells()
+{
+    const auto mousePos = Vec2F { ImGui::GetMousePos() };
+    const auto delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+    
+    const auto realDelta = Vec2F { delta.x - m_LeftDeltaLast.X, delta.y - m_LeftDeltaLast.Y };
+    const auto lastPos = mousePos - realDelta;
+    const auto deltaStep = realDelta.Normalized();
+
+    for (float i = 0; i <= realDelta.Magnitude(); i++)
+    {
+        auto pos = Vec2F { lastPos.X + i * deltaStep.X, lastPos.Y + i * deltaStep.Y };
+        auto gridPos = ConvertToGridPos(pos);
+        if (!gridPos)
+			break;
+		m_Grid.Set(gridPos->X, gridPos->Y, m_EditorMode == EditorMode::Insert);
+    }
+
+    m_LeftDeltaLast = delta;
+}
+
 void gol::SimulationEditor::UpdateDragState()
 {
-    if (ImGui::IsMouseDragging(ImGuiMouseButton_Right))
+    if (!ImGui::IsMouseDragging(ImGuiMouseButton_Right))
     {
-        Vec2F delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
-        m_Graphics.Camera.Translate(glm::vec2(delta) - m_DeltaLast);
-        m_DeltaLast = delta;
+        m_RightDeltaLast = { 0.f, 0.f };
+        return;
     }
-    else
-    {
-        m_DeltaLast = glm::vec2(0.f);
-    }
+
+    Vec2F delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+    m_Graphics.Camera.Translate(glm::vec2(delta) - glm::vec2(m_RightDeltaLast));
+    m_RightDeltaLast = delta;
 }
 
 void gol::SimulationEditor::UpdateViewport()

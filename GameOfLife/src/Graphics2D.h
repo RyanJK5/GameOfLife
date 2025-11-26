@@ -1,6 +1,7 @@
 #ifndef __Graphics2D_h__
 #define __Graphics2D_h__
 
+#include <cmath>
 #include <cstdint>
 #include <concepts>
 #include <imgui/imgui.h>
@@ -68,14 +69,17 @@ namespace gol
 
 	struct Vec2F : public GenericVec<float>
 	{
-		constexpr Vec2F() : GenericVec() { }
-		constexpr explicit Vec2F(GenericVec<int32_t> vec) : GenericVec(static_cast<float>(vec.X), static_cast<float>(vec.Y)) { }
-		constexpr Vec2F(ImVec2 vec) : GenericVec(vec.x, vec.y) { }
-		constexpr Vec2F(glm::vec2 vec) : GenericVec(vec.x, vec.y) { }
-		constexpr Vec2F(float x, float y) : GenericVec(x, y) { }
+		constexpr Vec2F() : GenericVec() {}
+		constexpr explicit Vec2F(GenericVec<int32_t> vec) : GenericVec(static_cast<float>(vec.X), static_cast<float>(vec.Y)) {}
+		constexpr Vec2F(ImVec2 vec) : GenericVec(vec.x, vec.y) {}
+		constexpr Vec2F(glm::vec2 vec) : GenericVec(vec.x, vec.y) {}
+		constexpr Vec2F(float x, float y) : GenericVec(x, y) {}
 
 		constexpr operator ImVec2() const { return { X, Y }; }
 		constexpr operator glm::vec2() const { return { X, Y }; }
+
+		float Magnitude() const  { return std::sqrt(X * X + Y * Y); }
+		Vec2F Normalized() const { return Magnitude() == 0 ? Vec2F{ 0.f, 0.f } : Vec2F{ X / Magnitude(), Y / Magnitude() }; }
 	};
 
 	struct Size2F : public GenericSize<float>

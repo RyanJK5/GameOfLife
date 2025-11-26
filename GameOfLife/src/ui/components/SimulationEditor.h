@@ -45,8 +45,10 @@ namespace gol
 		gol::SimulationState ResizeGrid(const gol::SimulationControlResult& result);
 		void UpdateViewport();
 		std::optional<Vec2> CursorGridPos();
+		std::optional<Vec2> ConvertToGridPos(Vec2F screenPos);
 
 		void UpdateMouseState(Vec2 gridPos);
+		void FillCells();
 		void UpdateDragState();
 
 	private:
@@ -64,7 +66,8 @@ namespace gol
 		ErrorWindow m_FileErrorWindow;
 		WarnWindow m_PasteWarning;
 
-		glm::vec2 m_DeltaLast = { 0, 0 };
+		Vec2F m_LeftDeltaLast;
+		Vec2F m_RightDeltaLast;
 		double m_TickDelayMs = DefaultTickDelayMs;
 		EditorMode m_EditorMode = EditorMode::None;
 	};
