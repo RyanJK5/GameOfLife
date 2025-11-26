@@ -14,7 +14,6 @@
 #include <variant>
 
 #include "GameEnums.h"
-#include "GameGrid.h"
 #include "GraphicsHandler.h"
 #include "Graphics2D.h"
 #include "Logging.h"
@@ -116,6 +115,7 @@ gol::SimulationState gol::SimulationEditor::PaintUpdate(const GraphicsHandlerArg
     {
         m_SelectionManager.TryResetSelection();
     }
+    m_LeftDeltaLast = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
 
     return (m_Grid.Dead() && !m_SelectionManager.GridAlive())
         ? SimulationState::Empty 
@@ -137,7 +137,8 @@ gol::SimulationState gol::SimulationEditor::PauseUpdate(const GraphicsHandlerArg
 
 void gol::SimulationEditor::DisplaySimulation()
 {
-    ImGui::Begin("Simulation");
+    ImGui::SetNextFrameWantCaptureMouse(false);
+    ImGui::Begin("Simulation", nullptr);
     ImGui::BeginChild("Render");
 
     ImDrawListSplitter splitter {};
@@ -152,6 +153,9 @@ void gol::SimulationEditor::DisplaySimulation()
         ImVec2(0, 1),
         ImVec2(1, 0)
     );
+    ImGui::SetCursorPosY(0);
+    ImGui::InvisibleButton("##SimulationViewport", ImGui::GetContentRegionAvail());
+    m_TakeMouseInput = ImGui::IsItemHovered();
 
     splitter.SetCurrentChannel(ImGui::GetWindowDrawList(), 1);
     ImGui::SetCursorPos(ImGui::GetWindowContentRegionMin());
@@ -373,7 +377,7 @@ gol::SimulationState gol::SimulationEditor::ResizeGrid(const gol::SimulationCont
 
 void gol::SimulationEditor::UpdateMouseState(Vec2 gridPos)
 {
-    if (ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId))
+    if (!m_TakeMouseInput || ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId)) 
         return;
 
     auto result = m_SelectionManager.UpdateSelectionArea(m_Grid, gridPos);
@@ -424,8 +428,6 @@ void gol::SimulationEditor::FillCells()
 			break;
 		m_Grid.Set(gridPos->X, gridPos->Y, m_EditorMode == EditorMode::Insert);
     }
-
-    m_LeftDeltaLast = delta;
 }
 
 void gol::SimulationEditor::UpdateDragState()

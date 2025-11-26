@@ -48,9 +48,9 @@ std::expected<gol::RLEEncoder::DecodeResult, uint32_t> gol::RLEEncoder::DecodeRe
 
 	auto result64 = DecodeRegion<uint64_t>(data, warnThreshold);
 	if (result64)
-		return result64;
+		return *result64;
 
-	return std::unexpected{ result64.error() };
+	return std::unexpected{ result32.error() };
 }
 
 bool gol::RLEEncoder::WriteRegion(const GameGrid& grid, const Rect& region, 
@@ -84,10 +84,10 @@ std::expected<gol::RLEEncoder::DecodeResult, std::string> gol::RLEEncoder::ReadR
 constexpr std::variant<uint8_t, uint16_t, uint32_t, uint64_t> gol::RLEEncoder::SelectStorageType(uint64_t count)
 {
 	if (count <= (std::numeric_limits<uint8_t>::max() >> 2))
-		return uint8_t{};
+		return uint8_t {};
 	else if (count <= (std::numeric_limits<uint16_t>::max() >> 4))
-		return uint16_t{};
+		return uint16_t {};
 	else if (count <= (std::numeric_limits<uint32_t>::max() >> 8))
-		return uint32_t{};
-	return uint64_t{};
+		return uint32_t {};
+	return uint64_t {};
 }

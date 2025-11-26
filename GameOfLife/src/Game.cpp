@@ -77,7 +77,9 @@ void gol::Game::InitImGUI(const std::filesystem::path& stylePath)
     ImGui::CreateContext();
 
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= IOFlags;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     io.ConfigDebugHighlightIdConflicts = true;
 
     auto path = std::filesystem::path("resources") / "font" / "arial.ttf";
@@ -134,16 +136,14 @@ void gol::Game::CreateDockspace()
     const ImVec2 windowSize = { static_cast<float>(windowWidth), static_cast<float>(windowHeight) };
     ImGui::SetNextWindowSize(windowSize);
 
-    ImGui::Begin("DockSpace", nullptr, DockspaceFlags | ImGuiWindowFlags_NoTitleBar);
+    auto flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar;
     ImGuiID dockspaceID = ImGui::GetID("DockSpace");
-    ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+    ImGui::DockSpaceOverViewport(dockspaceID, ImGui::GetMainViewport());
     if (m_Startup)
     {
         InitDockspace(dockspaceID, windowSize);
         m_Startup = false;
     }
-
-    ImGui::End();
 }
 
 void gol::Game::InitDockspace(uint32_t dockspaceID, ImVec2 windowSize)

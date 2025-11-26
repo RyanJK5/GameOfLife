@@ -66,6 +66,7 @@ namespace gol
 		ErrorWindow m_FileErrorWindow;
 		WarnWindow m_PasteWarning;
 
+		bool m_TakeMouseInput = false;
 		Vec2F m_LeftDeltaLast;
 		Vec2F m_RightDeltaLast;
 		double m_TickDelayMs = DefaultTickDelayMs;

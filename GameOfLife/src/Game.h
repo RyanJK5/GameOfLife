@@ -38,10 +38,6 @@ namespace gol
 		static constexpr int32_t DefaultWindowHeight = 1080;
 		static constexpr int32_t DefaultGridWidth = 0;
 		static constexpr int32_t DefaultGridHeight = 0;
-
-		static constexpr int32_t IOFlags =
-			ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_DockingEnable;
-		static constexpr int32_t DockspaceFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 	public:
 		Game();
 		~Game();

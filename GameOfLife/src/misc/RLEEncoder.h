@@ -40,8 +40,9 @@ namespace gol::RLEEncoder
 	{
 		uint32_t formatted = FormatNumber<uint32_t>(dim);
 		std::vector<StorageType> result;
-		for (int8_t i = sizeof(int32_t) - sizeof(StorageType); i >= 0; i -= sizeof(StorageType))
-			result.push_back(formatted >> (i * 8));
+		for (int32_t i = static_cast<int32_t>(sizeof(int32_t) - sizeof(StorageType)); 
+				i >= 0; i -= static_cast<int32_t>(sizeof(StorageType)))
+			result.push_back(static_cast<StorageType>(formatted >> (i * 8)));
 		std::ranges::reverse(result);
 		return result;
 	}
@@ -50,11 +51,11 @@ namespace gol::RLEEncoder
 	static constexpr StorageType ReadNumber(const char* value)
 	{
 		constexpr uint8_t getData = 0b00111111;
-		StorageType result = 0b0;
+		StorageType result = static_cast<StorageType>(0b0);
 
-		for (int8_t i = 0; i < sizeof(StorageType); i++)
+		for (uint32_t i = 0; i < sizeof(StorageType); i++)
 		{
-			result |= (getData & static_cast<const uint8_t>(value[i])) << (i * 6);
+			result |= static_cast<StorageType>(getData & static_cast<const uint8_t>(value[i])) << static_cast<StorageType>(i * 6);
 		}
 		return result;
 	}
@@ -85,11 +86,11 @@ namespace gol::RLEEncoder
 
 			if (!running)
 			{
-				StorageType count = (region.Height * (pos.X - runStart.X) + pos.Y - runStart.Y) - 1;
+				StorageType count = static_cast<StorageType>((region.Height * (pos.X - runStart.X) + pos.Y - runStart.Y) - 1);
 				if (count > largestValue)
 					throw std::invalid_argument("Specified region contains data that is too large");
 				if (count > 0)
-					encoded.emplace_back(FormatNumber<StorageType>(count));
+					encoded.push_back(FormatNumber<StorageType>(count));
 				else if (first)
 					encoded[4 * sizeof(uint32_t) / sizeof(StorageType)] = FormatNumber<StorageType>('1');
 				running = true;
@@ -106,10 +107,10 @@ namespace gol::RLEEncoder
 
 			if (!region.InBounds(nextPos + offset) || grid.Data().find(nextPos + offset) == grid.Data().end())
 			{
-				StorageType count = (region.Height * (pos.X - runStart.X) + pos.Y - runStart.Y) + 1;
+				StorageType count = static_cast<StorageType>((region.Height * (pos.X - runStart.X) + pos.Y - runStart.Y) + 1);
 				if (count > largestValue)
 					throw std::invalid_argument("Specified region contains data that is too large");
-				encoded.emplace_back(FormatNumber<StorageType>(count));
+				encoded.push_back(FormatNumber<StorageType>(count));
 				running = false;
 				runStart = pos;
 			}
@@ -117,7 +118,7 @@ namespace gol::RLEEncoder
 		if (!running)
 		{
 			gol::Vec2 pos = region.LowerRight() - offset;
-			StorageType count = (region.Height * (pos.X - 1 - runStart.X) + pos.Y - runStart.Y) - 1;
+			StorageType count = static_cast<StorageType>((region.Height * (pos.X - 1 - runStart.X) + pos.Y - runStart.Y) - 1);
 			if (count > largestValue)
 			{
 				ERROR("{} * {} = {} > {}", region.Width, region.Height, region.Width * region.Height, largestValue);
@@ -154,7 +155,7 @@ namespace gol::RLEEncoder
 
 		auto width  = static_cast<int32_t>(ReadNumber<uint32_t>(data + sizeof(uint32_t) * 2));
 		auto height = static_cast<int32_t>(ReadNumber<uint32_t>(data + sizeof(uint32_t) * 3));
-		if (width * height > (std::numeric_limits<StorageType>::max() >> (2 * sizeof(StorageType))))
+		if (width * height > static_cast<int32_t>(std::numeric_limits<StorageType>::max() >> (2 * sizeof(StorageType))))
 			return std::unexpected { std::numeric_limits<StorageType>::max() };
 
 		bool running = ReadNumber<StorageType>(data + 4 * sizeof(uint32_t)) == '1';
@@ -169,7 +170,7 @@ namespace gol::RLEEncoder
 		auto result = GameGrid { width, height };
 
 		StorageType warnCount = 0;
-		for (size_t i = 4 * sizeof(uint32_t) + 3 * sizeof(StorageType); data[i] != '\0'; i += sizeof(StorageType))
+		for (uint32_t i = 4 * sizeof(uint32_t) + 3 * sizeof(StorageType); data[i] != '\0'; i += sizeof(StorageType))
 		{
 			StorageType count = ReadNumber<StorageType>(data + i);
 			if (running)
@@ -185,16 +186,16 @@ namespace gol::RLEEncoder
 				for (StorageType j = 0; j < count; j++)
 				{
 					result.Set(
-						xPtr + (yPtr + j) / height,
-						(yPtr + j) % height,
+						static_cast<int32_t>(xPtr + (yPtr + j) / height),
+						static_cast<int32_t>((yPtr + j) % height),
 						true
 					);
 				}
 			}
 
 			running = !running;
-			xPtr += (yPtr + count) / height;
-			yPtr = (yPtr + count) % height;
+			xPtr += static_cast<StorageType>((yPtr + count) / height);
+			yPtr = static_cast<StorageType>((yPtr + count) % height);
 		}
 
 		if (warnCount >= warnThreshold)

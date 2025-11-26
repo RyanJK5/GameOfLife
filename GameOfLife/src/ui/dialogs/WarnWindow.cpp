@@ -10,7 +10,6 @@
 gol::PopupWindowState gol::WarnWindow::ShowButtons() const
 {
 	constexpr int32_t height = ActionButton<EditorAction, false>::DefaultButtonHeight;
-	ImGui::Text(Message.c_str());
 	bool yes = ImGui::Button("Yes",
 	{
 		ImGui::GetContentRegionAvail().x,
