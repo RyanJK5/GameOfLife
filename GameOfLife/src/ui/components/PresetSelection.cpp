@@ -12,6 +12,15 @@
 #include "PresetSelectionResult.h"
 #include "RLEEncoder.h"
 
+gol::PresetDisplay::PresetDisplay(const GameGrid& grid, const std::string& fileName, Size2 windowSize)
+    : Grid(grid), FileName(fileName),
+    Graphics(
+        std::filesystem::path("resources") / "shader" / "default.shader",
+        windowSize.Width, windowSize.Height,
+        Color{}
+    )
+{ }
+
 gol::PresetSelection::PresetSelection(const std::filesystem::path& defaultPath, Size2 windowSize)
 {
 	ReadFiles(defaultPath, windowSize);
@@ -20,7 +29,6 @@ gol::PresetSelection::PresetSelection(const std::filesystem::path& defaultPath, 
 gol::PresetSelectionResult gol::PresetSelection::Update()
 {
     ImGui::Begin("Presets", nullptr, ImGuiWindowFlags_NoNavInputs);
-    //ImGui::BeginChild("Render", { 0, 0 }, ImGuiChildFlags_None, ImGuiWindowFlags_NoNavInputs);
 
     auto cursorPos = ImGui::GetCursorPos();
     for (size_t i = 0; i < m_Library.size(); i++)
@@ -37,7 +45,7 @@ gol::PresetSelectionResult gol::PresetSelection::Update()
             .ViewportBounds = windowBounds,
             .GridSize = m_Library[i].Grid.Size(),
             .CellSize = {cellSize, cellSize},
-            .ShowGridLines = true
+            .ShowGridLines = false
         };
 
         m_Library[i].Graphics.RescaleFrameBuffer(windowBounds, windowBounds);
@@ -63,13 +71,14 @@ gol::PresetSelectionResult gol::PresetSelection::Update()
         ImGui::SetItemTooltip(m_Library[i].FileName.c_str());
 
         ImGui::SetCursorPos(cursorPos);
+
         if (ImGui::InvisibleButton(std::format("##{}", m_Library[i].FileName).c_str(), {windowBounds.Width, windowBounds.Height}))
-        {
             ImGui::SetClipboardText(RLEEncoder::EncodeRegion(m_Library[i].Grid, {{0, 0}, m_Library[i].Grid.Size()}).c_str());
-        }
+
+        if (ImGui::IsItemHovered())
+            m_Library[i].Graphics.DrawSelection({ {0, 0}, graphicsArgs.GridSize }, graphicsArgs);
     }
 
-    //ImGui::EndChild();
     ImGui::End();
 
     return {};

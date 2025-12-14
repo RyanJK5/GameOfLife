@@ -29,9 +29,35 @@ gol::SelectionUpdateResult gol::SelectionManager::UpdateSelectionArea(GameGrid& 
 
     if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && (m_AnchorSelection != m_SentinelSelection))
     {
-        if (m_Selected)
+        if (m_Selected && m_LockSelection)
             return { .BeginSelection = false };
-    
+        if (m_Selected && !m_LockSelection)
+        {
+            if (gridPos == *m_SentinelSelection && m_UnlockedOriginalPosition)
+            {
+                auto result = SelectionUpdateResult
+                {
+                    .Change = VersionChange
+                    {
+                        .Action = SelectionAction::NudgeDown,
+                        .SelectionBounds = SelectionBounds(),
+                        .NudgeTranslation = gridPos - *m_UnlockedOriginalPosition
+                    },
+                    .BeginSelection = false
+                };
+                m_UnlockedOriginalPosition = std::nullopt;
+                return result;
+            }
+            else if ((std::abs(ImGui::GetIO().MouseDelta.x) <= 5 && std::abs(ImGui::GetIO().MouseDelta.y) <= 5))
+                return { .BeginSelection = false };
+
+            if (!m_UnlockedOriginalPosition)
+                m_UnlockedOriginalPosition = m_SentinelSelection;
+            auto sentinelOffset = *m_SentinelSelection - *m_AnchorSelection;
+            m_SentinelSelection = gridPos;
+            m_AnchorSelection = gridPos - sentinelOffset;
+        }
+
         m_Selected = grid.SubRegion(SelectionBounds());
         auto change = VersionChange
         ({
@@ -45,10 +71,10 @@ gol::SelectionUpdateResult gol::SelectionManager::UpdateSelectionArea(GameGrid& 
         return { .Change = change, .BeginSelection = false };
     }
 
-    Deselect(grid);
+    auto change = Deselect(grid);
     m_AnchorSelection = gridPos;
     m_SentinelSelection = gridPos;
-    return { .BeginSelection = false };
+    return { .Change = change, .BeginSelection = false };
 }
 
 bool gol::SelectionManager::TryResetSelection()
@@ -115,8 +141,9 @@ std::expected<gol::VersionChange, uint32_t> gol::SelectionManager::Paste(std::op
         return std::unexpected{ decodeResult.error() };
 
     m_Selected = std::move(decodeResult->Grid);
-    m_AnchorSelection = gridPos;
-    m_SentinelSelection = { gridPos->X + m_Selected->Width() - 1, gridPos->Y + m_Selected->Height() - 1 };
+    m_SentinelSelection = gridPos;
+    m_AnchorSelection = { gridPos->X + m_Selected->Width() - 1, gridPos->Y + m_Selected->Height() - 1 };
+
     return VersionChange
     {
         .Action = SelectionAction::Paste,
@@ -258,6 +285,8 @@ void gol::SelectionManager::HandleVersionChange(EditorAction undoRedo, GameGrid&
         return;
     }
 
+    m_UnlockedOriginalPosition = std::nullopt;
+
     if (auto* editorAction = std::get_if<EditorAction>(&*change.Action))
     {
         if (!change.GridResize)
@@ -272,6 +301,25 @@ void gol::SelectionManager::HandleVersionChange(EditorAction undoRedo, GameGrid&
                 grid = GameGrid(grid, change.GridResize->second);
             return;
         }
+    }
+
+    if (auto* gameAction = std::get_if<GameAction>(&*change.Action))
+    {
+        switch (*gameAction)
+        {
+        case GameAction::Clear:
+            if (undoRedo == EditorAction::Undo)
+            {
+                for (auto pos : change.CellsDeleted)
+                    grid.Set(pos.X, pos.Y, true);
+            }
+            else
+            {
+                for (auto pos : change.CellsDeleted)
+                    grid.Set(pos.X, pos.Y, false);
+            }
+            return;
+		}
     }
 
     auto* action = std::get_if<SelectionAction>(&*change.Action);

@@ -40,7 +40,7 @@ gol::Game::Game()
     : m_Window(DefaultWindowWidth, DefaultWindowHeight)
     , m_Editor({DefaultWindowWidth, DefaultWindowHeight}, {DefaultGridWidth, DefaultGridHeight})
     , m_Control(*(StyleLoader::LoadYAML<ImVec4>(std::filesystem::path("config") / "style.yaml")))
-    , m_PresetSelection(std::filesystem::current_path() / "templates", {DefaultWindowWidth, DefaultWindowHeight})
+    , m_PresetSelection(std::filesystem::current_path() / "templates")
 {
     InitImGUI(std::filesystem::path("config") / "style.yaml");
 }

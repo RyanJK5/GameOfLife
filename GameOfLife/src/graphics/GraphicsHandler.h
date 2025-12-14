@@ -28,7 +28,8 @@ namespace gol
 	public:
 		GraphicsHandler(
 			const std::filesystem::path& shaderFilePath, 
-			int32_t windowWidth, int32_t windowHeight
+			int32_t windowWidth, int32_t windowHeight,
+			Color bgColor
 		);
 
 		GraphicsHandler(const GraphicsHandler& other) = delete;
@@ -62,9 +63,13 @@ namespace gol
 		
 		void DrawGridLines(Vec2 offset, const GraphicsHandlerArgs& args);
 	private:
+		Color m_BgColor;
+
 		ShaderManager m_Shader;
 		
 		GLBuffer m_GridBuffer;
+		GLBuffer m_GridLineBuffer;
+		GLBuffer m_SelectionBuffer;
 		GLIndexBuffer m_SelectionIndexBuffer;
 
 		GLFrameBuffer m_FrameBuffer;

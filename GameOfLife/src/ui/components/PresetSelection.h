@@ -19,13 +19,7 @@ namespace gol
 		std::string FileName;
 		GraphicsHandler Graphics;
 
-		PresetDisplay(const GameGrid& grid, const std::string& fileName, Size2 windowSize)
-			: Grid(grid), FileName(fileName),
-			  Graphics(
-				  std::filesystem::path("resources") / "shader" / "default.shader", 
-				  windowSize.Width, windowSize.Height
-			  )
-		{ }
+		PresetDisplay(const GameGrid& grid, const std::string& fileName, Size2 windowSize);
 	};
 
 	class PresetSelection
@@ -34,7 +28,7 @@ namespace gol
 		static constexpr Size2 TemplateDimensions = { 300, 300 };
 		static constexpr int32_t TemplatesPerRow = 5;
 	public:
-		PresetSelection(const std::filesystem::path& defaultPath, Size2 windowSize);
+		PresetSelection(const std::filesystem::path& defaultPath, Size2 templateSize = TemplateDimensions);
 
 		PresetSelectionResult Update();
 	private:

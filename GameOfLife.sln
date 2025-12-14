@@ -5,6 +5,8 @@ VisualStudioVersion = 18.3.11206.111
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameOfLife", "GameOfLife\GameOfLife.vcxproj", "{009A886F-E73E-4AC7-8FBE-86FE5157532A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HashLife", "HashLife\HashLife.vcxproj", "{AA76CC5C-BD5B-4DFA-823A-EB6EF68947C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{009A886F-E73E-4AC7-8FBE-86FE5157532A}.Release|x64.Build.0 = Release|x64
 		{009A886F-E73E-4AC7-8FBE-86FE5157532A}.Release|x86.ActiveCfg = Release|Win32
 		{009A886F-E73E-4AC7-8FBE-86FE5157532A}.Release|x86.Build.0 = Release|Win32
+		{AA76CC5C-BD5B-4DFA-823A-EB6EF68947C5}.Debug|x64.ActiveCfg = Debug|x64
+		{AA76CC5C-BD5B-4DFA-823A-EB6EF68947C5}.Debug|x64.Build.0 = Debug|x64
+		{AA76CC5C-BD5B-4DFA-823A-EB6EF68947C5}.Debug|x86.ActiveCfg = Debug|Win32
+		{AA76CC5C-BD5B-4DFA-823A-EB6EF68947C5}.Debug|x86.Build.0 = Debug|Win32
+		{AA76CC5C-BD5B-4DFA-823A-EB6EF68947C5}.Release|x64.ActiveCfg = Release|x64
+		{AA76CC5C-BD5B-4DFA-823A-EB6EF68947C5}.Release|x64.Build.0 = Release|x64
+		{AA76CC5C-BD5B-4DFA-823A-EB6EF68947C5}.Release|x86.ActiveCfg = Release|Win32
+		{AA76CC5C-BD5B-4DFA-823A-EB6EF68947C5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

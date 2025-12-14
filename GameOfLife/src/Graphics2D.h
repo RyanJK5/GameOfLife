@@ -9,6 +9,17 @@
 
 namespace gol
 {
+	struct Color
+	{
+		float Red;
+		float Green;
+		float Blue;
+		float Alpha;
+		
+		constexpr Color() : Red(0), Green(0), Blue(0), Alpha(1) { }
+		constexpr Color(float r, float g, float b, float a = 1.f) : Red(r), Green(g), Blue(b), Alpha(a) { }
+	};
+
 	template <std::totally_ordered T>
 	struct GenericVec
 	{

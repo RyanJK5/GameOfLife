@@ -14,9 +14,9 @@
 
 struct FrameBufferBinder
 {
-    FrameBufferBinder(const gol::GLFrameBuffer& buffer) : m_ID(buffer.ID()) 
+    FrameBufferBinder(const gol::GLFrameBuffer& buffer) 
     {
-        GL_DEBUG(glBindFramebuffer(GL_FRAMEBUFFER, m_ID));
+        GL_DEBUG(glBindFramebuffer(GL_FRAMEBUFFER, buffer.ID()));
     }
 
     ~FrameBufferBinder() 
@@ -29,16 +29,15 @@ struct FrameBufferBinder
 
     FrameBufferBinder(FrameBufferBinder&&) = delete;
     auto& operator=(const FrameBufferBinder&&) = delete;
-
-private:
-    uint32_t m_ID;
 };
 
 gol::GraphicsHandler::GraphicsHandler(
     const std::filesystem::path& shaderFilePath, 
-    int32_t windowWidth, int32_t windowHeight
+    int32_t windowWidth, int32_t windowHeight,
+    Color bgColor
 )
-    : m_Shader(shaderFilePath)
+    : m_BgColor(bgColor)
+    , m_Shader(shaderFilePath)
 {
     GL_DEBUG(glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer.ID()));
 
@@ -98,7 +97,7 @@ void gol::GraphicsHandler::ClearBackground(const GraphicsHandlerArgs& args)
     GL_DEBUG(glEnable(GL_SCISSOR_TEST));
     
     GL_DEBUG(glScissor(0, 0, args.ViewportBounds.Width, args.ViewportBounds.Height));
-    GL_DEBUG(glClearColor(0.1f, 0.1f, 0.1f, 1));
+    GL_DEBUG(glClearColor(m_BgColor.Red, m_BgColor.Green, m_BgColor.Blue, m_BgColor.Alpha));
     GL_DEBUG(glClear(GL_COLOR_BUFFER_BIT));
     
     auto gridScreenDimensions = Size2F
@@ -216,7 +215,7 @@ void gol::GraphicsHandler::DrawGridLines(Vec2 offset, const GraphicsHandlerArgs&
         positions.push_back(gridInfo.LowerRight.Y);
     }
 
-    GL_DEBUG(glBindBuffer(GL_ARRAY_BUFFER, m_GridBuffer.ID()));
+    GL_DEBUG(glBindBuffer(GL_ARRAY_BUFFER, m_GridLineBuffer.ID()));
     GL_DEBUG(glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), positions.data(), GL_DYNAMIC_DRAW));
     GL_DEBUG(glEnableVertexAttribArray(0));
     GL_DEBUG(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
@@ -290,6 +289,7 @@ void gol::GraphicsHandler::DrawSelection(const Rect& region, const GraphicsHandl
     FrameBufferBinder binder{ m_FrameBuffer };
 
     auto matrix = Camera.OrthographicProjection(args.ViewportBounds.Size());
+    m_Shader.AttachUniformVec4("u_Color", { 1.f, 1.f, 1.f, 1.f });
     m_Shader.AttachUniformMatrix4("u_MVP", matrix);
 
     RectF rect = GridToScreenBounds(region, args);
@@ -309,7 +309,7 @@ void gol::GraphicsHandler::DrawSelection(const Rect& region, const GraphicsHandl
         3, 0
     };
 
-    GL_DEBUG(glBindBuffer(GL_ARRAY_BUFFER, m_GridBuffer.ID()));
+    GL_DEBUG(glBindBuffer(GL_ARRAY_BUFFER, m_SelectionBuffer.ID()));
     GL_DEBUG(glBufferData(GL_ARRAY_BUFFER, 2 * 4 * sizeof(float), positions, GL_DYNAMIC_DRAW));
     GL_DEBUG(glEnableVertexAttribArray(0));
     GL_DEBUG(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));

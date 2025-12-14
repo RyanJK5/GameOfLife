@@ -67,6 +67,9 @@ namespace gol
 	private:
 		bool m_RotationParity = false;
 
+		bool m_LockSelection = true;
+		std::optional<Vec2> m_UnlockedOriginalPosition;
+
 		std::optional<Vec2> m_AnchorSelection;
 		std::optional<Vec2> m_SentinelSelection;
 		std::optional<GameGrid> m_Selected;
