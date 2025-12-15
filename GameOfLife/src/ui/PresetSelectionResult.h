@@ -5,7 +5,7 @@ namespace gol
 {
 	struct PresetSelectionResult
 	{
-
+		std::string ClipboardText;
 	};
 }
 

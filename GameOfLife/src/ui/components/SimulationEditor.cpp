@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
@@ -7,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/fwd.hpp>
 #include <imgui/imgui.h>
+#include <limits>
 #include <locale>
 #include <optional>
 #include <string>
@@ -21,6 +21,8 @@
 #include "SimulationControlResult.h"
 #include "SimulationEditor.h"
 #include "VersionManager.h"
+#include "PopupWindow.h"
+#include "PresetSelectionResult.h"
 
 gol::SimulationEditor::SimulationEditor(Size2 windowSize, Size2 gridSize)
     : m_Grid(gridSize)
@@ -33,15 +35,19 @@ gol::SimulationEditor::SimulationEditor(Size2 windowSize, Size2 gridSize)
     , m_FileErrorWindow("File Error")
 { }   
 
-gol::EditorState gol::SimulationEditor::Update(const SimulationControlResult& args)
+gol::EditorState gol::SimulationEditor::Update(const SimulationControlResult& controlArgs, const PresetSelectionResult& presetArgs)
 {
-    auto graphicsArgs = GraphicsHandlerArgs
+    const auto graphicsArgs = GraphicsHandlerArgs
     { 
         .ViewportBounds = ViewportBounds(), 
         .GridSize = m_Grid.Size(),
 		.CellSize = { SimulationEditor::DefaultCellWidth, SimulationEditor::DefaultCellHeight },
-		.ShowGridLines = args.GridLines
+		.ShowGridLines = controlArgs.GridLines
     };
+    UpdateViewport();
+    UpdateDragState();
+    m_Graphics.RescaleFrameBuffer(WindowBounds(), ViewportBounds());
+    m_Graphics.ClearBackground(graphicsArgs);
 
     auto pasteWarnResult = m_PasteWarning.Update();
     if (pasteWarnResult == PopupWindowState::Success)
@@ -51,18 +57,22 @@ gol::EditorState gol::SimulationEditor::Update(const SimulationControlResult& ar
             m_VersionManager.PushChange(*pasteResult);
     }
     m_FileErrorWindow.Update();
-
-    UpdateViewport();
-    UpdateDragState();
-    m_Graphics.RescaleFrameBuffer(WindowBounds(), ViewportBounds());
-    m_Graphics.ClearBackground(graphicsArgs);
     
-    if (args.TickDelayMs)
-        m_TickDelayMs = *args.TickDelayMs;
+    if (presetArgs.ClipboardText.length() > 0) 
+    {
+		ImGui::SetClipboardText(presetArgs.ClipboardText.c_str());
+        m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
+        auto result = m_SelectionManager.Paste(Vec2{ 0, 0 }, std::numeric_limits<uint32_t>::max(), true);
+        if (result)
+            m_VersionManager.PushChange(*result);
+	}
 
-    SimulationState state = !args.Action
-        ? args.State 
-        : UpdateState(args);
+    if (controlArgs.TickDelayMs)
+        m_TickDelayMs = *controlArgs.TickDelayMs;
+
+    SimulationState state = !controlArgs.Action
+        ? controlArgs.State 
+        : UpdateState(controlArgs);
 
     state = [this, state, &graphicsArgs]()
     {
@@ -332,7 +342,7 @@ void gol::SimulationEditor::PasteSelection()
         m_VersionManager.TryPushChange(m_SelectionManager.Deselect(m_Grid));
     auto pasteResult = m_SelectionManager.Paste(gridPos, 1000000U);
     if (pasteResult)
-        m_VersionManager.TryPushChange(*pasteResult);
+        m_VersionManager.PushChange(*pasteResult);
     else if (pasteResult.error() != 0)
     {
         m_PasteWarning.Active = true;

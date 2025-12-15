@@ -58,9 +58,9 @@ void gol::Game::Begin()
     {
         BeginFrame();
         
-        auto result = m_Control.Update(m_State);
-        m_State = m_Editor.Update(result);
-		m_PresetSelection.Update();
+        auto controlResult = m_Control.Update(m_State);
+		auto presetResult = m_PresetSelection.Update();
+        m_State = m_Editor.Update(controlResult, presetResult);
 
         EndFrame();
     }

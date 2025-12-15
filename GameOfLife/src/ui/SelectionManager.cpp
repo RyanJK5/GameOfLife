@@ -32,31 +32,7 @@ gol::SelectionUpdateResult gol::SelectionManager::UpdateSelectionArea(GameGrid& 
         if (m_Selected && m_LockSelection)
             return { .BeginSelection = false };
         if (m_Selected && !m_LockSelection)
-        {
-            if (gridPos == *m_SentinelSelection && m_UnlockedOriginalPosition)
-            {
-                auto result = SelectionUpdateResult
-                {
-                    .Change = VersionChange
-                    {
-                        .Action = SelectionAction::NudgeDown,
-                        .SelectionBounds = SelectionBounds(),
-                        .NudgeTranslation = gridPos - *m_UnlockedOriginalPosition
-                    },
-                    .BeginSelection = false
-                };
-                m_UnlockedOriginalPosition = std::nullopt;
-                return result;
-            }
-            else if ((std::abs(ImGui::GetIO().MouseDelta.x) <= 5 && std::abs(ImGui::GetIO().MouseDelta.y) <= 5))
-                return { .BeginSelection = false };
-
-            if (!m_UnlockedOriginalPosition)
-                m_UnlockedOriginalPosition = m_SentinelSelection;
-            auto sentinelOffset = *m_SentinelSelection - *m_AnchorSelection;
-            m_SentinelSelection = gridPos;
-            m_AnchorSelection = gridPos - sentinelOffset;
-        }
+            return UpdateUnlockedSelection(gridPos);
 
         m_Selected = grid.SubRegion(SelectionBounds());
         auto change = VersionChange
@@ -71,10 +47,39 @@ gol::SelectionUpdateResult gol::SelectionManager::UpdateSelectionArea(GameGrid& 
         return { .Change = change, .BeginSelection = false };
     }
 
-    auto change = Deselect(grid);
+    auto deselectChange = Deselect(grid);
     m_AnchorSelection = gridPos;
     m_SentinelSelection = gridPos;
-    return { .Change = change, .BeginSelection = false };
+    return { .Change = deselectChange, .BeginSelection = false };
+}
+
+gol::SelectionUpdateResult gol::SelectionManager::UpdateUnlockedSelection(gol::Vec2& gridPos)
+{
+    if (gridPos == *m_SentinelSelection && m_UnlockedOriginalPosition)
+    {
+        auto result = SelectionUpdateResult
+        {
+            .Change = VersionChange
+            {
+                .Action = SelectionAction::NudgeDown,
+                .SelectionBounds = SelectionBounds(),
+                .NudgeTranslation = gridPos - *m_UnlockedOriginalPosition
+            },
+            .BeginSelection = false
+        };
+        m_UnlockedOriginalPosition = std::nullopt;
+        return result;
+    }
+    else if ((std::abs(ImGui::GetIO().MouseDelta.x) <= 5 && std::abs(ImGui::GetIO().MouseDelta.y) <= 5))
+        return { .BeginSelection = false };
+
+    if (!m_UnlockedOriginalPosition)
+        m_UnlockedOriginalPosition = m_SentinelSelection;
+    auto sentinelOffset = *m_SentinelSelection - *m_AnchorSelection;
+    m_SentinelSelection = gridPos;
+    m_AnchorSelection = gridPos - sentinelOffset;
+
+    return { .BeginSelection = false };
 }
 
 bool gol::SelectionManager::TryResetSelection()
@@ -104,6 +109,7 @@ std::optional<gol::VersionChange> gol::SelectionManager::Deselect(GameGrid& grid
         }};
     }();
 
+    m_LockSelection = true;
     m_AnchorSelection = std::nullopt;
     m_SentinelSelection = std::nullopt;
     m_Selected = std::nullopt;
@@ -129,8 +135,11 @@ std::optional<gol::VersionChange> gol::SelectionManager::Cut()
     return Delete();
 }
 
-std::expected<gol::VersionChange, uint32_t> gol::SelectionManager::Paste(std::optional<Vec2> gridPos, uint32_t warnThreshold)
+std::expected<gol::VersionChange, uint32_t> gol::SelectionManager::Paste(std::optional<Vec2> gridPos, uint32_t warnThreshold, bool unlock)
 {
+    if (unlock)
+		m_LockSelection = false;
+
     if (!gridPos)
         gridPos = m_AnchorSelection;
     if (!gridPos)
@@ -237,6 +246,7 @@ std::expected<gol::VersionChange, std::string> gol::SelectionManager::Load(const
     m_Selected = std::move(result->Grid);
 	m_AnchorSelection = result->Offset;
 	m_SentinelSelection = result->Offset + Vec2 { m_Selected->Width() - 1, m_Selected->Height() - 1 };
+    m_LockSelection = false;
 
     return VersionChange
     {

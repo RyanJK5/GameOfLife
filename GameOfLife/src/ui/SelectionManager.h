@@ -34,7 +34,7 @@ namespace gol
 
 		std::optional<VersionChange> Cut();
 
-		std::expected<VersionChange, uint32_t> Paste(std::optional<Vec2> gridPos, uint32_t warnThreshold);
+		std::expected<VersionChange, uint32_t> Paste(std::optional<Vec2> gridPos, uint32_t warnThreshold, bool unlock = false);
 
 		std::optional<VersionChange> Delete();
 
@@ -59,6 +59,8 @@ namespace gol
 		bool CanDrawLargeSelection() const;
 		bool CanDrawGrid() const;
 	private:
+		SelectionUpdateResult UpdateUnlockedSelection(gol::Vec2& gridPos);
+
 		void RestoreGridVersion(EditorAction undoRedo, GameGrid& grid, const VersionChange& change);
 
 		void SetSelectionBounds(const Rect& bounds);

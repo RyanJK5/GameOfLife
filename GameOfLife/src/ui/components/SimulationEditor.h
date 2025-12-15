@@ -9,6 +9,7 @@
 #include "GameGrid.h"
 #include "GraphicsHandler.h"
 #include "Graphics2D.h"
+#include "PresetSelectionResult.h"
 #include "SelectionManager.h"
 #include "SimulationControlResult.h"
 #include "VersionManager.h"
@@ -27,7 +28,7 @@ namespace gol
 		Rect WindowBounds() const;
 		Rect ViewportBounds() const;
 
-		EditorState Update(const SimulationControlResult& args);
+		EditorState Update(const SimulationControlResult& controlArgs, const PresetSelectionResult& presetArgs);
 	private:
 		SimulationState SimulationUpdate(const GraphicsHandlerArgs& args);
 		SimulationState PaintUpdate(const GraphicsHandlerArgs& args);

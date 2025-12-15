@@ -273,26 +273,26 @@ void gol::GraphicsHandler::DrawGrid(Vec2 offset, const std::set<Vec2>& grid, con
     GL_DEBUG(glDrawArrays(GL_QUADS, 0, positions.size() / 2));
 }
 
-gol::RectF gol::GraphicsHandler::GridToScreenBounds(const Rect& region, const GraphicsHandlerArgs& args) const
+gol::RectDouble gol::GraphicsHandler::GridToScreenBounds(const Rect& region, const GraphicsHandlerArgs& args) const
 {
-    return RectF 
+    return RectDouble 
     {
-          static_cast<float>(region.X      * args.CellSize.Width),
-          static_cast<float>(region.Y      * args.CellSize.Height),
-          static_cast<float>(region.Width  * args.CellSize.Width),
-          static_cast<float>(region.Height * args.CellSize.Height),
+          region.X      * args.CellSize.Width,
+          region.Y      * args.CellSize.Height,
+          region.Width  * args.CellSize.Width,
+          region.Height * args.CellSize.Height,
     };
 }
 
 void gol::GraphicsHandler::DrawSelection(const Rect& region, const GraphicsHandlerArgs& args)
 {
-    FrameBufferBinder binder{ m_FrameBuffer };
+    FrameBufferBinder binder { m_FrameBuffer };
 
     auto matrix = Camera.OrthographicProjection(args.ViewportBounds.Size());
     m_Shader.AttachUniformVec4("u_Color", { 1.f, 1.f, 1.f, 1.f });
     m_Shader.AttachUniformMatrix4("u_MVP", matrix);
 
-    RectF rect = GridToScreenBounds(region, args);
+    RectDouble rect = GridToScreenBounds(region, args);
     float positions[] = 
     { 
         rect.UpperLeft().X, rect.UpperLeft().Y,
