@@ -70,7 +70,7 @@ gol::SelectionUpdateResult gol::SelectionManager::UpdateUnlockedSelection(gol::V
         m_UnlockedOriginalPosition = std::nullopt;
         return result;
     }
-    else if ((std::abs(ImGui::GetIO().MouseDelta.x) <= 5 && std::abs(ImGui::GetIO().MouseDelta.y) <= 5))
+    else if ((std::abs(ImGui::GetIO().MouseDelta.x) <= 1 && std::abs(ImGui::GetIO().MouseDelta.y) <= 1))
         return { .BeginSelection = false };
 
     if (!m_UnlockedOriginalPosition)

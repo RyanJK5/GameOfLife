@@ -182,7 +182,7 @@ gol::PresetSelectionResult gol::PresetSelection::Update()
 void gol::PresetSelection::ReadFiles(const std::filesystem::path& path)
 {
     m_MaxGridDimensions = Size2F {};
-    for (const auto& file : std::filesystem::directory_iterator(path)) 
+    for (const auto& file : std::filesystem::recursive_directory_iterator(path)) 
     {
         if (file.path().extension() != ".gol")
             continue;
