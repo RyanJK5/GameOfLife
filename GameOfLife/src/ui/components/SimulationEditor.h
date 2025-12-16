@@ -36,7 +36,7 @@ namespace gol
 
 		void UpdateVersion(const SimulationControlResult& args);
 
-		void DisplaySimulation();
+		void DisplaySimulation(const std::filesystem::path& path);
 
 		SimulationState UpdateState(const SimulationControlResult& action);
 		void PasteSelection();

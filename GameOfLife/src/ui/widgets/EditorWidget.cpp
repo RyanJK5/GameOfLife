@@ -5,7 +5,7 @@
 #include "GameEnums.h"
 #include "SimulationControlResult.h"
 
-gol::SimulationControlResult gol::EditorWidget::Update(EditorState state)
+gol::SimulationControlResult gol::EditorWidget::Update(const EditorState& state)
 {
 	auto result = std::optional<ActionVariant> {};
 	const auto updateIfNone = [&result](std::optional<ActionVariant> update)

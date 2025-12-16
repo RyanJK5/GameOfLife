@@ -10,7 +10,8 @@ shortcuts:
     resize: []
     undo: [Ctrl+Z]
     redo: [Ctrl+Y, Ctrl+Shift+Z]
-    save: [Ctrl+S]
+    save: [Ctrl+Shift+S]
+    update: [Ctrl+S]
     load: [Ctrl+O]
 
     deselect: [Esc]
@@ -42,9 +43,12 @@ imgui-style:
 
     Text: text
     
+
     Button: contrast
     ButtonHovered: hover
     
+    CheckMark: text
+
     SliderGrab: hover
 
     Header: contrast

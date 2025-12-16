@@ -19,8 +19,8 @@ namespace gol
         {}
     protected:
         virtual Size2F Dimensions() const final { return { ImGui::GetContentRegionAvail().x, ActionButton::DefaultButtonHeight }; }
-        virtual std::string Label(EditorState) const override final { return "Apply"; }
-        virtual bool Enabled(EditorState state) const final { return state.State == SimulationState::Paint || state.State == SimulationState::Empty; }
+        virtual std::string Label(const EditorState&) const override final { return "Apply"; }
+        virtual bool Enabled(const EditorState& state) const final { return state.State == SimulationState::Paint || state.State == SimulationState::Empty; }
     };
 
     class ResizeWidget
@@ -30,7 +30,7 @@ namespace gol
             : m_Button(shortcuts)
         { }
 
-        SimulationControlResult Update(EditorState state);
+        SimulationControlResult Update(const EditorState& state);
     private:
         ResizeButton m_Button;
         Size2 m_Dimensions;

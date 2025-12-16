@@ -22,8 +22,8 @@ namespace gol
         { }
     protected:
         virtual Size2F Dimensions() const override final { return { ImGui::GetContentRegionAvail().x, ActionButton::DefaultButtonHeight }; }
-        virtual std::string Label(EditorState) const override final { return ICON_FA_FORWARD_STEP; }
-        virtual bool Enabled(EditorState state) const override final { return state.State == SimulationState::Paint || state.State == SimulationState::Paused; }
+        virtual std::string Label(const EditorState&) const override final { return ICON_FA_FORWARD_STEP; }
+        virtual bool Enabled(const EditorState& state) const override final { return state.State == SimulationState::Paint || state.State == SimulationState::Paused; }
     };
 
 	class StepWidget
@@ -36,7 +36,7 @@ namespace gol
             : m_Button(shortcuts)
         { }
 
-		SimulationControlResult Update(EditorState state);
+		SimulationControlResult Update(const EditorState& state);
 	private:
         int32_t m_StepCount = 1;
 

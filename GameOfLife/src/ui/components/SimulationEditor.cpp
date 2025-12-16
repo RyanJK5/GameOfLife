@@ -91,10 +91,11 @@ gol::EditorState gol::SimulationEditor::Update(const SimulationControlResult& co
         std::unreachable();
     }();
 
-    DisplaySimulation();
+    DisplaySimulation(controlArgs.FilePath ? *controlArgs.FilePath : std::filesystem::path { });
     return 
     { 
-        .State = state, 
+        .State = state,
+        .EditingPath = controlArgs.FilePath ? *controlArgs.FilePath : std::filesystem::path { },
         .SelectionActive = m_SelectionManager.CanDrawGrid(),
 		.UndosAvailable = m_VersionManager.UndosAvailable(),
 		.RedosAvailable = m_VersionManager.RedosAvailable()
@@ -155,9 +156,12 @@ gol::SimulationState gol::SimulationEditor::PauseUpdate(const GraphicsHandlerArg
     return SimulationState::Paused;
 }
 
-void gol::SimulationEditor::DisplaySimulation()
+void gol::SimulationEditor::DisplaySimulation(const std::filesystem::path& path)
 {
-    ImGui::Begin("Simulation", nullptr);
+    ImGui::Begin(std::format("{}{}###Simulation", 
+        path.empty() ? "(untitled)" : path.string().c_str(),
+        (!path.empty() && !m_VersionManager.IsSaved()) ? "*" : ""
+        ).c_str(), nullptr);
     ImGui::BeginChild("Render");
 
     ImDrawListSplitter splitter {};
@@ -306,6 +310,7 @@ gol::SimulationState gol::SimulationEditor::UpdateState(const SimulationControlR
         case Redo:
             UpdateVersion(result);
             return result.State;
+        case UpdateFile: [[fallthrough]];
         case Save:
             if (!m_SelectionManager.Save(m_Grid, *result.FilePath))
             {
@@ -314,10 +319,16 @@ gol::SimulationState gol::SimulationEditor::UpdateState(const SimulationControlR
                     "Failed to save file to \n{}"
                     , result.FilePath->string()
                 );
+                
+            }
+            else
+            {
+                m_VersionManager.Save();
             }
             return result.State;
         case Load:
             LoadFile(result);
+            m_VersionManager.Save();
             return result.State;
         }
 	}

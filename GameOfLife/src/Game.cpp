@@ -54,12 +54,16 @@ gol::Game::~Game()
 
 void gol::Game::Begin()
 {
+    std::println("Temp");
     while (Open())
     {
         BeginFrame();
         
         auto controlResult = m_Control.Update(m_State);
-		auto presetResult = m_PresetSelection.Update();
+		if (controlResult.FilePath)
+			m_State.EditingPath = *controlResult.FilePath;
+
+        auto presetResult = m_PresetSelection.Update();
         m_State = m_Editor.Update(controlResult, presetResult);
 
         EndFrame();
@@ -171,7 +175,7 @@ void gol::Game::InitDockspace(uint32_t dockspaceID, ImVec2 windowSize)
     );
 
     ImGui::DockBuilderDockWindow("Presets", downID);
-    ImGui::DockBuilderDockWindow("Simulation", rightID);
+    ImGui::DockBuilderDockWindow("###Simulation", rightID);
     ImGui::DockBuilderDockWindow("Simulation Control", leftID);
     ImGui::DockBuilderFinish(dockspaceID);
 }

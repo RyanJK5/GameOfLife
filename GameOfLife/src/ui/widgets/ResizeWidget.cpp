@@ -5,7 +5,7 @@
 #include "ResizeWidget.h"
 #include "SimulationControlResult.h"
 
-gol::SimulationControlResult gol::ResizeWidget::Update(EditorState state)
+gol::SimulationControlResult gol::ResizeWidget::Update(const EditorState& state)
 {
     const float totalWidth = ImGui::GetContentRegionAvail().x;
     ImGui::SetCursorPosX(ImGui::GetStyle().FramePadding.x * 3);

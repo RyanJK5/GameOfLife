@@ -5,7 +5,7 @@
 #include "SimulationControlResult.h"
 #include "StepWidget.h"
 
-gol::SimulationControlResult gol::StepWidget::Update(EditorState state)
+gol::SimulationControlResult gol::StepWidget::Update(const EditorState& state)
 {
     ImGui::Text("Step Count");
 

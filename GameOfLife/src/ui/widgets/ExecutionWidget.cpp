@@ -11,7 +11,7 @@
 #include "SimulationControlResult.h"
 
 gol::Size2F gol::StartButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x / 4.f, MultiActionButton::DefaultButtonHeight };  }
-std::string gol::StartButton::Label(EditorState state) const
+std::string gol::StartButton::Label(const EditorState& state) const
 {
 	switch (state.State)
 	{
@@ -20,7 +20,7 @@ std::string gol::StartButton::Label(EditorState state) const
 	default:         return ICON_FA_PLAY;
 	}
 }
-gol::GameAction gol::StartButton::Action(EditorState state) const
+gol::GameAction gol::StartButton::Action(const EditorState& state) const
 {
 	switch (state.State)
 	{
@@ -31,24 +31,24 @@ gol::GameAction gol::StartButton::Action(EditorState state) const
 	}
 	std::unreachable();
 }
-bool gol::StartButton::Enabled(EditorState state) const
+bool gol::StartButton::Enabled(const EditorState& state) const
 { 
 	return state.State == SimulationState::Paint || state.State == SimulationState::Paused || state.State == SimulationState::Simulation; 
 }
 
 gol::Size2F     gol::ResetButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x / 3.f, ActionButton::DefaultButtonHeight }; }
-std::string     gol::ResetButton::Label(EditorState) const { return ICON_FA_STOP; }
-bool            gol::ResetButton::Enabled(EditorState state) const { return state.State == SimulationState::Simulation || state.State == SimulationState::Paused; }
+std::string     gol::ResetButton::Label(const EditorState&) const { return ICON_FA_STOP; }
+bool            gol::ResetButton::Enabled(const EditorState& state) const { return state.State == SimulationState::Simulation || state.State == SimulationState::Paused; }
 
 gol::Size2F     gol::RestartButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x / 2.f, ActionButton::DefaultButtonHeight }; }
-std::string     gol::RestartButton::Label(EditorState) const { return ICON_FA_REPEAT; }
-bool            gol::RestartButton::Enabled(EditorState state) const { return state.State == SimulationState::Simulation || state.State == SimulationState::Paused; }
+std::string     gol::RestartButton::Label(const EditorState&) const { return ICON_FA_REPEAT; }
+bool            gol::RestartButton::Enabled(const EditorState& state) const { return state.State == SimulationState::Simulation || state.State == SimulationState::Paused; }
 
 gol::Size2F     gol::ClearButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x, ActionButton::DefaultButtonHeight }; }
-std::string     gol::ClearButton::Label(EditorState) const { return ICON_FA_TRASH; }
-bool            gol::ClearButton::Enabled(EditorState state) const { return state.State != SimulationState::Empty; }
+std::string     gol::ClearButton::Label(const EditorState&) const { return ICON_FA_TRASH; }
+bool            gol::ClearButton::Enabled(const EditorState& state) const { return state.State != SimulationState::Empty; }
 
-gol::SimulationControlResult gol::ExecutionWidget::Update(EditorState state)
+gol::SimulationControlResult gol::ExecutionWidget::Update(const EditorState& state)
 {
 	auto result = std::optional<GameAction> {};
 	const auto updateIfNone = [&result](std::optional<GameAction> update)

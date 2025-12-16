@@ -96,6 +96,7 @@ namespace gol::StyleLoader
 		{ "TabSelected",         ImGuiCol_TabSelected         },
 		{ "SliderGrab",          ImGuiCol_SliderGrab          },
 		{ "FrameBg",             ImGuiCol_FrameBg             },
+		{ "CheckMark",           ImGuiCol_CheckMark           },
 		{ "FrameBgHovered",      ImGuiCol_FrameBgHovered      }
 	};
 

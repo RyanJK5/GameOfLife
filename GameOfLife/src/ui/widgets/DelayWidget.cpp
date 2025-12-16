@@ -5,7 +5,7 @@
 #include "GameEnums.h"
 #include "SimulationControlResult.h"
 
-gol::SimulationControlResult gol::DelayWidget::Update(EditorState)
+gol::SimulationControlResult gol::DelayWidget::Update(const EditorState&)
 {
 
 	ImGui::Text("Simulation Delay (ms)");

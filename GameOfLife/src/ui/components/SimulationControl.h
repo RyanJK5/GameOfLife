@@ -30,7 +30,7 @@ namespace gol
 			const std::vector<ImGuiKeyChord>& down
 		);
 
-		SimulationControlResult Update(EditorState state);
+		SimulationControlResult Update(const EditorState& state);
 	};
 
 	class SimulationControl
@@ -38,7 +38,7 @@ namespace gol
 	public:
 		SimulationControl(const StyleLoader::StyleInfo<ImVec4>& fileInfo);
 
-		SimulationControlResult Update(EditorState state);
+		SimulationControlResult Update(const EditorState& state);
 	private:
 		void FillResults(SimulationControlResult& current, const SimulationControlResult& update) const;
 	private:

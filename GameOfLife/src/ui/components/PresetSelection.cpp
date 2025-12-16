@@ -186,7 +186,7 @@ void gol::PresetSelection::ReadFiles(const std::filesystem::path& path)
     {
         if (file.path().extension() != ".gol")
             continue;
-
+        
         auto result = RLEEncoder::ReadRegion(file.path());
         if (!result)
         {

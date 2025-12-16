@@ -36,11 +36,19 @@ namespace gol
 		std::optional<VersionChange> Undo();
 		std::optional<VersionChange> Redo();
 
+		void Save() { m_LastSavedHeight = m_EditHeight; }
+		bool IsSaved() const { return m_EditHeight == m_LastSavedHeight; }
+
 		bool UndosAvailable() const { return !m_UndoStack.empty(); }
 		bool RedosAvailable() const { return !m_RedoStack.empty(); }
 	private:
+		bool BreakingChange(const VersionChange& change) const;
+
 		void ClearRedos();
 	private:
+		size_t m_EditHeight = 0;
+		size_t m_LastSavedHeight = 0;
+
 		std::stack<VersionChange> m_UndoStack;
 		std::stack<VersionChange> m_RedoStack;
 	};

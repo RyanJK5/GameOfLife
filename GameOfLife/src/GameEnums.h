@@ -2,6 +2,7 @@
 #define __GameEnums_h__
 
 #include <concepts>
+#include <filesystem>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -17,6 +18,7 @@ namespace gol
 	struct EditorState
 	{
 		SimulationState State = SimulationState::Empty;
+		std::filesystem::path EditingPath;
 		bool SelectionActive = false;
 		bool UndosAvailable = false;
 		bool RedosAvailable = false;
@@ -40,6 +42,7 @@ namespace gol
 		Undo,
 		Redo,
 		Save,
+		UpdateFile,
 		Load
 	};
 
@@ -77,7 +80,8 @@ namespace gol
 			{ "undo",        EditorAction::Undo       },
 			{ "redo",        EditorAction::Redo       },
 			{ "save",        EditorAction::Save       },
-			{ "load",        EditorAction::Load       },
+			{ "update",      EditorAction::UpdateFile     },
+			{ "load",        EditorAction::Load       }
 		};
 		inline const std::unordered_map<std::string_view, SelectionAction> SelectionActionDefinitions = {
 			{ "rotate",      SelectionAction::Rotate     },
