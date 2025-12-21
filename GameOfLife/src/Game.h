@@ -8,6 +8,7 @@
 
 #include "GameEnums.h"
 #include "Graphics2D.h"
+#include "PopupWindow.h"
 #include "PresetSelection.h"
 #include "SimulationControl.h"
 #include "SimulationEditor.h"
@@ -64,6 +65,8 @@ namespace gol
 		void InitImGUI(const std::filesystem::path& stylePath);
 		void CreateDockspace();
 
+		bool WindowCanClose();
+
 		bool CheckForNewEditors(const SimulationControlResult& controlResult);
 		void CreateEditorDockspace();
 		
@@ -75,6 +78,10 @@ namespace gol
 		OpenGLWindow m_Window;
 
 		std::vector<SimulationEditor> m_Editors;
+		
+		WarnWindow m_UnsavedWarning;
+		SimulationEditor* m_Unsaved = nullptr;
+		
 		size_t m_ActiveEditorID = 0;
 
 		SimulationControl m_Control;

@@ -31,7 +31,9 @@ namespace gol
 		const std::filesystem::path& CurrentFilePath() const { return m_CurrentFilePath; }
 
 		EditorResult Update(std::optional<bool> activeOverride, const SimulationControlResult& controlArgs, const PresetSelectionResult& presetArgs);
-	
+		
+		bool IsSaved() const;
+		bool operator==(const SimulationEditor& other) const;
 	private:
 		struct DisplayResult
 		{

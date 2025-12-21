@@ -38,6 +38,17 @@ gol::SimulationEditor::SimulationEditor(uint32_t id, const std::filesystem::path
     , m_FileErrorWindow("File Error")
 { }   
 
+bool gol::SimulationEditor::IsSaved() const
+{
+    return m_VersionManager.IsSaved();
+}
+
+
+bool gol::SimulationEditor::operator==(const SimulationEditor& other) const
+{
+    return m_CurrentFilePath == other.m_CurrentFilePath;
+}
+
 gol::EditorResult gol::SimulationEditor::Update(std::optional<bool> activeOverride, const SimulationControlResult& controlArgs, const PresetSelectionResult& presetArgs)
 {
     auto displayResult = DisplaySimulation(controlArgs.Action && activeOverride && (*activeOverride));
@@ -106,6 +117,7 @@ gol::EditorResult gol::SimulationEditor::Update(std::optional<bool> activeOverri
         .SelectionActive = m_SelectionManager.CanDrawGrid(),
 		.UndosAvailable = m_VersionManager.UndosAvailable(),
 		.RedosAvailable = m_VersionManager.RedosAvailable(),
+		.HasUnsavedChanges = !m_VersionManager.IsSaved()
     };
 }
 
@@ -351,6 +363,8 @@ gol::SimulationState gol::SimulationEditor::UpdateState(const SimulationControlR
             }
             else
             {
+                if (m_CurrentFilePath.empty())
+                    m_CurrentFilePath = *result.FilePath;
                 m_VersionManager.Save();
             }
             return result.State;

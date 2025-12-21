@@ -20,6 +20,9 @@
 #include "SimulationEditor.h"
 #include "PresetSelectionResult.h"
 #include "SimulationControlResult.h"
+#include <cassert>
+#include <vector>
+#include "PopupWindow.h"
  
 gol::OpenGLWindow::OpenGLWindow(int32_t width, int32_t height)
     : Bounds(0, 0, width, height)
@@ -47,7 +50,7 @@ gol::OpenGLWindow::~OpenGLWindow()
 
 gol::Game::Game()
     : m_Window(DefaultWindowWidth, DefaultWindowHeight)
-    , m_Editors()
+    , m_UnsavedWarning("Unsaved Changes")
     , m_Control(*(StyleLoader::LoadYAML<ImVec4>(std::filesystem::path("config") / "style.yaml")))
     , m_PresetSelection(std::filesystem::current_path() / "templates")
 {
@@ -69,7 +72,7 @@ gol::Game::~Game()
 
 void gol::Game::Begin()
 {
-    while (Open())
+    while (!glfwWindowShouldClose(m_Window.Get()))
     {
         BeginFrame();
         
@@ -78,6 +81,8 @@ void gol::Game::Begin()
         UpdateEditors(controlResult, presetResult);
 
         EndFrame();
+        if (glfwWindowShouldClose(m_Window.Get()))
+            glfwSetWindowShouldClose(m_Window.Get(), WindowCanClose());
     }
 }
 
@@ -93,10 +98,28 @@ void gol::Game::UpdateEditors(const SimulationControlResult& controlResult, cons
     auto newWindowIndex = m_LastActive;
     bool pastWindowEnabled = CheckForNewEditors(controlResult);
 
+    auto unsavedResult = m_UnsavedWarning.Update();
+	if (unsavedResult == PopupWindowState::Success)
+    {
+        if (!m_Unsaved)
+        {
+            m_Editors.clear();
+            glfwSetWindowShouldClose(m_Window.Get(), true);
+        }
+        else
+            std::erase(m_Editors, *m_Unsaved);
+        m_Unsaved = nullptr;
+    }
+    else if (unsavedResult == PopupWindowState::Failure)
+    {
+        m_Unsaved = nullptr;
+    }
 
     if (m_LastActive < m_Editors.size())
         std::swap(m_Editors[m_LastActive], m_Editors.back());
-    m_LastActive = m_Editors.size() - 1;
+    m_LastActive = m_Editors.size() > 0
+        ? m_Editors.size() - 1
+        : 0;
     for (size_t i = 0; i < m_Editors.size(); i++)
     {
         auto activeOverride = [&]() -> std::optional<bool>
@@ -115,8 +138,18 @@ void gol::Game::UpdateEditors(const SimulationControlResult& controlResult, cons
             m_State = result;
             m_LastActive = i;
         }
-        if (result.Closing)
+        if (result.Closing && !result.HasUnsavedChanges)
             m_Editors.erase(m_Editors.begin() + i--);
+        else if (result.Closing)
+        {
+            m_UnsavedWarning.Active = true;
+			m_UnsavedWarning.Message = result.CurrentFilePath.empty()
+			? "This file has not been saved. Are you sure you want to close it without saving?"
+            : std::format(
+                "{} has unsaved changes. Are you sure you want to close it without saving?",
+                result.CurrentFilePath.filename().string());
+			m_Unsaved = &m_Editors[i];
+        }
     }
 
     ImGui::End();
@@ -231,6 +264,17 @@ void gol::Game::InitDockspace(uint32_t dockspaceID, ImVec2 windowSize)
     ImGui::DockBuilderFinish(dockspaceID);
 }
 
+bool gol::Game::WindowCanClose()
+{
+    if (std::ranges::all_of(m_Editors, [](const auto& editor) { return editor.IsSaved(); }))
+        return true;
+
+	m_UnsavedWarning.Active = true;
+	m_UnsavedWarning.Message = "One or more files have unsaved changes. Are you sure you want to close the application without saving?";
+
+    return false;
+}
+
 bool gol::Game::CheckForNewEditors(const SimulationControlResult& controlResult)
 {
     if (!controlResult.FilePath)
@@ -262,9 +306,9 @@ bool gol::Game::CheckForNewEditors(const SimulationControlResult& controlResult)
 void gol::Game::CreateEditorDockspace()
 {
 	ImGuiID editorDockspaceID = ImGui::GetID("###EditorDockspace");
-    auto id = ImGui::DockBuilderAddNode(
+    ImGui::DockBuilderAddNode(
         editorDockspaceID,
-        ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_DockSpace
+        ImGuiDockNodeFlags_PassthruCentralNode | static_cast<ImGuiDockNodeFlags>(ImGuiDockNodeFlags_DockSpace)
     );
 
     for (size_t i = 0; i < m_Editors.size(); i++)

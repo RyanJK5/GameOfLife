@@ -25,6 +25,7 @@ namespace gol
 		bool SelectionActive = false;
 		bool UndosAvailable = false;
 		bool RedosAvailable = false;
+		bool HasUnsavedChanges = false;
 	};
 
 	enum class GameAction
