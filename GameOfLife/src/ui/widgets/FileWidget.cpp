@@ -13,24 +13,34 @@
 #include "PopupWindow.h"
 #include "SimulationControlResult.h"
 
+gol::NewFileButton::NewFileButton(std::span<const ImGuiKeyChord> shortcuts) : ActionButton(EditorAction::NewFile, shortcuts) {}
+gol::Size2F     gol::NewFileButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x / 4.f, ActionButton::DefaultButtonHeight }; }
+std::string     gol::NewFileButton::Label(const EditorResult&) const { return ICON_FA_FILE_CIRCLE_PLUS; }
+bool            gol::NewFileButton::Enabled(const EditorResult& state) const { return state.State != SimulationState::Simulation; }
+
 gol::UpdateFileButton::UpdateFileButton(std::span<const ImGuiKeyChord> shortcuts) : ActionButton(EditorAction::UpdateFile, shortcuts) { }
-gol::Size2F     gol::UpdateFileButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x / 4.f, ActionButton::DefaultButtonHeight }; }
+gol::Size2F     gol::UpdateFileButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x / 3.f, ActionButton::DefaultButtonHeight }; }
 std::string     gol::UpdateFileButton::Label(const EditorResult&) const { return ICON_FA_FILE_ARROW_UP; }
 bool            gol::UpdateFileButton::Enabled(const EditorResult& state) const { return state.State != SimulationState::Simulation; }
 
 gol::SaveButton::SaveButton(std::span<const ImGuiKeyChord> shortcuts) : ActionButton(EditorAction::Save, shortcuts) { }
-gol::Size2F     gol::SaveButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x / 3.f, ActionButton::DefaultButtonHeight }; }
+gol::Size2F     gol::SaveButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x / 2.f, ActionButton::DefaultButtonHeight }; }
 std::string     gol::SaveButton::Label(const EditorResult&) const { return ICON_FA_FLOPPY_DISK; }
 bool            gol::SaveButton::Enabled(const EditorResult& state) const { return state.State == SimulationState::Paint || state.State == SimulationState::Paused; }
 
 gol::LoadButton::LoadButton(std::span<const ImGuiKeyChord> shortcuts) : ActionButton(EditorAction::Load, shortcuts) {}
-gol::Size2F     gol::LoadButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x / 2.f, ActionButton::DefaultButtonHeight }; }
+gol::Size2F     gol::LoadButton::Dimensions() const { return { ImGui::GetContentRegionAvail().x, ActionButton::DefaultButtonHeight }; }
 std::string     gol::LoadButton::Label(const EditorResult&) const { return ICON_FA_FOLDER_OPEN; }
 bool            gol::LoadButton::Enabled(const EditorResult& state) const { return state.State != SimulationState::Simulation; }
 
-gol::FileWidget::FileWidget(std::span<const ImGuiKeyChord> updateFileShortcuts, 
-		std::span<const ImGuiKeyChord> saveShortcuts, std::span<const ImGuiKeyChord> loadShortcuts)
-	: m_UpdateFileButton(updateFileShortcuts)
+gol::FileWidget::FileWidget(
+		std::span<const ImGuiKeyChord> newFileShortcuts,
+		std::span<const ImGuiKeyChord> updateFileShortcuts, 
+		std::span<const ImGuiKeyChord> saveShortcuts, 
+		std::span<const ImGuiKeyChord> loadShortcuts
+)
+	: m_NewFileButton(newFileShortcuts)
+	, m_UpdateFileButton(updateFileShortcuts)
 	, m_SaveButton(saveShortcuts)
 	, m_LoadButton(loadShortcuts)
 	, m_FileNotOpened("File Not Opened")
@@ -42,27 +52,26 @@ gol::SimulationControlResult gol::FileWidget::UpdateImpl(const EditorResult& sta
 	if (popupState == PopupWindowState::Success)
 		m_FileNotOpened.Active = false;
 
-	auto result = m_UpdateFileButton.Update(state);
-
-	auto saveResult = m_SaveButton.Update(state);
-	if (!result.Action)
-		result = saveResult;
+	auto result = SimulationControlResult{};
+	UpdateResult(result, m_NewFileButton.Update(state));
+	UpdateResult(result, m_UpdateFileButton.Update(state));
+	UpdateResult(result, m_SaveButton.Update(state));
 
 	ImGui::PushStyleVarY(ImGuiStyleVar_ItemSpacing, 30.f);
-	auto loadResult = m_LoadButton.Update(state);
+	UpdateResult(result, m_LoadButton.Update(state));
 	ImGui::Separator();
 	ImGui::PopStyleVar();
 
-	if (!result.Action)
-		result = loadResult;
 	if (!result.Action)
 		return { .FilePath = state.CurrentFilePath };
 	
 	auto filePath = [&result, state] -> std::expected<std::filesystem::path, FileDialogFailure>
 	{
-		switch (*result.Action)
+		switch (std::get<EditorAction>(*result.Action))
 		{
 		using enum EditorAction;
+		case NewFile:
+			return std::filesystem::path{};
 		case UpdateFile:
 			if (!state.CurrentFilePath.empty())
 				return state.CurrentFilePath;

@@ -297,10 +297,11 @@ bool gol::Game::CheckForNewEditors(const SimulationControlResult& controlResult)
         return true;
     if (!controlResult.Action)
 		return true;
-	if (controlResult.Action != ActionVariant{ EditorAction::Load })
+	if (controlResult.Action != ActionVariant { EditorAction::Load } && controlResult.Action != ActionVariant { EditorAction::NewFile })
         return true;
 
-    const bool fileOpen = std::ranges::any_of(m_Editors, [path = controlResult.FilePath](const SimulationEditor& editor) 
+    const bool fileOpen = controlResult.Action == ActionVariant { EditorAction::Load } 
+        && std::ranges::any_of(m_Editors, [path = controlResult.FilePath](const SimulationEditor& editor)
     { 
         return editor.CurrentFilePath() == path; 
     });

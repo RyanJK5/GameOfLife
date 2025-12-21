@@ -15,7 +15,17 @@
 
 namespace gol
 {
-	class UpdateFileButton : public ActionButton<EditorAction, true>
+	class NewFileButton : public ActionButton<EditorAction, true>
+	{
+	public:
+		NewFileButton(std::span<const ImGuiKeyChord> shortcuts);
+	protected:
+		virtual Size2F Dimensions() const override final;
+		virtual std::string Label(const EditorResult& state) const override final;
+		virtual bool Enabled(const EditorResult& state) const override final;
+	};
+
+	class UpdateFileButton : public ActionButton<EditorAction, false>
 	{
 	public:
 		UpdateFileButton(std::span<const ImGuiKeyChord> shortcuts);
@@ -48,12 +58,13 @@ namespace gol
 	class FileWidget : public Widget
 	{
 	public:
-		FileWidget(std::span<const ImGuiKeyChord> updateFileShortcuts,
-			std::span<const ImGuiKeyChord> saveShortcuts, std::span<const ImGuiKeyChord> loadShortcuts);
+		FileWidget(std::span<const ImGuiKeyChord> newFileShortcuts, std::span<const ImGuiKeyChord> updateFileShortcuts,
+		std::span<const ImGuiKeyChord> saveShortcuts, std::span<const ImGuiKeyChord> loadShortcuts);
 		friend Widget;
 	private:
 		SimulationControlResult UpdateImpl(const EditorResult& state);
 	private:
+		NewFileButton m_NewFileButton;
 		UpdateFileButton m_UpdateFileButton;
 		SaveButton m_SaveButton;
 		LoadButton m_LoadButton;

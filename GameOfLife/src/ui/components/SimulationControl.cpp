@@ -54,7 +54,7 @@ gol::SimulationControl::SimulationControl(const StyleLoader::StyleInfo<ImVec4>& 
     )
     , m_ExecutionWidget(fileInfo.Shortcuts)
     , m_EditorWidget(fileInfo.Shortcuts)
-    , m_FileWidget(fileInfo.Shortcuts.at(EditorAction::UpdateFile), fileInfo.Shortcuts.at(EditorAction::Save), fileInfo.Shortcuts.at(EditorAction::Load))
+    , m_FileWidget(fileInfo.Shortcuts.at(EditorAction::NewFile), fileInfo.Shortcuts.at(EditorAction::UpdateFile), fileInfo.Shortcuts.at(EditorAction::Save), fileInfo.Shortcuts.at(EditorAction::Load))
     , m_ResizeWidget(fileInfo.Shortcuts.at(EditorAction::Resize))
     , m_StepWidget(fileInfo.Shortcuts.at(GameAction::Step))
     , m_DelayWidget()

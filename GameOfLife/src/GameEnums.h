@@ -46,6 +46,7 @@ namespace gol
 		Undo,
 		Redo,
 		Save,
+		NewFile,
 		UpdateFile,
 		Load
 	};
@@ -84,7 +85,8 @@ namespace gol
 			{ "undo",        EditorAction::Undo       },
 			{ "redo",        EditorAction::Redo       },
 			{ "save",        EditorAction::Save       },
-			{ "update",      EditorAction::UpdateFile     },
+			{ "new",         EditorAction::NewFile    },
+			{ "update",      EditorAction::UpdateFile },
 			{ "load",        EditorAction::Load       }
 		};
 		inline const std::unordered_map<std::string_view, SelectionAction> SelectionActionDefinitions = {
