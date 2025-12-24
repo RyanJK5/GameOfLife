@@ -160,7 +160,7 @@ gol::PresetSelectionResult gol::PresetSelection::Update()
             ImVec2(0, 1),
             ImVec2(1, 0)
         );
-        ImGui::SetItemTooltip(m_Library[i].FileName.c_str());
+        ImGui::SetItemTooltip(std::format("{}.gol", m_Library[i].FileName).c_str());
 
         ImGui::SetCursorPos(cursorPos);
 
