@@ -19,15 +19,16 @@
 
 namespace gol
 {
-	struct SelectionShortcuts
+	struct ButtonlessShortcuts
 	{
-		std::unordered_map<SelectionAction, std::vector<KeyShortcut>> Shortcuts;
+		std::unordered_map<ActionVariant, std::vector<KeyShortcut>> Shortcuts;
 
-		SelectionShortcuts(
+		ButtonlessShortcuts(
 			const std::vector<ImGuiKeyChord>& left,
 			const std::vector<ImGuiKeyChord>& right,
 			const std::vector<ImGuiKeyChord>& up,
-			const std::vector<ImGuiKeyChord>& down
+			const std::vector<ImGuiKeyChord>& down,
+			const std::vector<ImGuiKeyChord>& close
 		);
 
 		SimulationControlResult Update(const EditorResult& state);
@@ -45,7 +46,7 @@ namespace gol
 		static constexpr int32_t BigStep = 100;
 		static constexpr int32_t StepWarning = 100;
 	private:
-		SelectionShortcuts m_SelectionShortcuts;
+		ButtonlessShortcuts m_ButtonlessShortcuts;
 
 		ExecutionWidget m_ExecutionWidget;
 		EditorWidget m_EditorWidget;

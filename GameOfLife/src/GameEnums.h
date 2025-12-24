@@ -48,7 +48,8 @@ namespace gol
 		Save,
 		NewFile,
 		UpdateFile,
-		Load
+		Load,
+		Close
 	};
 
 	enum class SelectionAction 
@@ -87,7 +88,8 @@ namespace gol
 			{ "save",        EditorAction::Save       },
 			{ "new",         EditorAction::NewFile    },
 			{ "update",      EditorAction::UpdateFile },
-			{ "load",        EditorAction::Load       }
+			{ "load",        EditorAction::Load       },
+			{ "close",       EditorAction::Close      },
 		};
 		inline const std::unordered_map<std::string_view, SelectionAction> SelectionActionDefinitions = {
 			{ "rotate",      SelectionAction::Rotate     },

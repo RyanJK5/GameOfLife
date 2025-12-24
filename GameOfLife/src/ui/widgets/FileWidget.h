@@ -58,8 +58,7 @@ namespace gol
 	class FileWidget : public Widget
 	{
 	public:
-		FileWidget(std::span<const ImGuiKeyChord> newFileShortcuts, std::span<const ImGuiKeyChord> updateFileShortcuts,
-		std::span<const ImGuiKeyChord> saveShortcuts, std::span<const ImGuiKeyChord> loadShortcuts);
+		FileWidget(const std::unordered_map<ActionVariant, std::vector<ImGuiKeyChord>>& shortcutInfo);
 		friend Widget;
 	private:
 		SimulationControlResult UpdateImpl(const EditorResult& state);

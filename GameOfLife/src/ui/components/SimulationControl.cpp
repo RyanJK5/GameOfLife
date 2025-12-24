@@ -7,26 +7,29 @@
 #include "SimulationControl.h"
 #include "SimulationControlResult.h"
 
-gol::SelectionShortcuts::SelectionShortcuts(
+gol::ButtonlessShortcuts::ButtonlessShortcuts(
     const std::vector<ImGuiKeyChord>& left,
     const std::vector<ImGuiKeyChord>& right,
     const std::vector<ImGuiKeyChord>& up,
-    const std::vector<ImGuiKeyChord>& down
+    const std::vector<ImGuiKeyChord>& down,
+    const std::vector<ImGuiKeyChord>& close
 )
     : Shortcuts({
-        { SelectionAction::NudgeLeft,  left | KeyShortcut::MapChordsToVector },
+        { SelectionAction::NudgeLeft,  left  | KeyShortcut::MapChordsToVector },
         { SelectionAction::NudgeRight, right | KeyShortcut::MapChordsToVector },
-        { SelectionAction::NudgeUp,    up | KeyShortcut::MapChordsToVector },
-        { SelectionAction::NudgeDown,  down | KeyShortcut::MapChordsToVector }
+        { SelectionAction::NudgeUp,    up    | KeyShortcut::MapChordsToVector },
+        { SelectionAction::NudgeDown,  down  | KeyShortcut::MapChordsToVector },
+		{ EditorAction::Close,         close | KeyShortcut::MapChordsToVector }
     })
 { }
 
-gol::SimulationControlResult gol::SelectionShortcuts::Update(const EditorResult& state)
+gol::SimulationControlResult gol::ButtonlessShortcuts::Update(const EditorResult& state)
 {
 	SimulationControlResult result { .NudgeSize = 1 };
     for (auto&& [action, actionShortcuts] : Shortcuts)
     {
-        if (action != SelectionAction::Deselect && state.State != SimulationState::Paint)
+        auto* selectionAction = std::get_if<SelectionAction>(&action);
+        if (selectionAction && *selectionAction != SelectionAction::Deselect && state.State != SimulationState::Paint)
             continue;
 
         bool resultActive = false;
@@ -46,15 +49,16 @@ gol::SimulationControlResult gol::SelectionShortcuts::Update(const EditorResult&
 }
 
 gol::SimulationControl::SimulationControl(const StyleLoader::StyleInfo<ImVec4>& fileInfo)
-    : m_SelectionShortcuts(
+    : m_ButtonlessShortcuts(
         fileInfo.Shortcuts.at(SelectionAction::NudgeLeft),
         fileInfo.Shortcuts.at(SelectionAction::NudgeRight),
         fileInfo.Shortcuts.at(SelectionAction::NudgeUp),
-        fileInfo.Shortcuts.at(SelectionAction::NudgeDown)
+        fileInfo.Shortcuts.at(SelectionAction::NudgeDown),
+		fileInfo.Shortcuts.at(EditorAction::Close)
     )
     , m_ExecutionWidget(fileInfo.Shortcuts)
     , m_EditorWidget(fileInfo.Shortcuts)
-    , m_FileWidget(fileInfo.Shortcuts.at(EditorAction::NewFile), fileInfo.Shortcuts.at(EditorAction::UpdateFile), fileInfo.Shortcuts.at(EditorAction::Save), fileInfo.Shortcuts.at(EditorAction::Load))
+    , m_FileWidget(fileInfo.Shortcuts)
     , m_ResizeWidget(fileInfo.Shortcuts.at(EditorAction::Resize))
     , m_StepWidget(fileInfo.Shortcuts.at(GameAction::Step))
     , m_DelayWidget()
@@ -92,7 +96,7 @@ gol::SimulationControlResult gol::SimulationControl::Update(const EditorResult& 
     FillResults(result, m_StepWidget.Update(state));
     FillResults(result, m_ResizeWidget.Update(state));
     FillResults(result, m_DelayWidget.Update(state));
-    FillResults(result, m_SelectionShortcuts.Update(state));
+    FillResults(result, m_ButtonlessShortcuts.Update(state));
 
     ImGui::End();
     return result;

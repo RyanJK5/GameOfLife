@@ -13,7 +13,7 @@ namespace gol
 	{
 	public:
 		constexpr static auto MapChordsToVector =
-			std::views::transform([](auto chord) { return KeyShortcut(chord); })
+			std::views::transform([](auto chord) { return KeyShortcut { chord }; })
 			| std::ranges::to<std::vector>();
 
 		static std::string StringRepresentation(std::span<const KeyShortcut> shortcuts);

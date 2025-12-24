@@ -33,16 +33,11 @@ gol::Size2F     gol::LoadButton::Dimensions() const { return { ImGui::GetContent
 std::string     gol::LoadButton::Label(const EditorResult&) const { return ICON_FA_FOLDER_OPEN; }
 bool            gol::LoadButton::Enabled(const EditorResult& state) const { return state.State != SimulationState::Simulation; }
 
-gol::FileWidget::FileWidget(
-		std::span<const ImGuiKeyChord> newFileShortcuts,
-		std::span<const ImGuiKeyChord> updateFileShortcuts, 
-		std::span<const ImGuiKeyChord> saveShortcuts, 
-		std::span<const ImGuiKeyChord> loadShortcuts
-)
-	: m_NewFileButton(newFileShortcuts)
-	, m_UpdateFileButton(updateFileShortcuts)
-	, m_SaveButton(saveShortcuts)
-	, m_LoadButton(loadShortcuts)
+gol::FileWidget::FileWidget(const std::unordered_map<ActionVariant, std::vector<ImGuiKeyChord>>& shortcutInfo)
+	: m_NewFileButton(shortcutInfo.at(EditorAction::NewFile))
+	, m_UpdateFileButton(shortcutInfo.at(EditorAction::UpdateFile))
+	, m_SaveButton(shortcutInfo.at(EditorAction::Save))
+	, m_LoadButton(shortcutInfo.at(EditorAction::Load))
 	, m_FileNotOpened("File Not Opened")
 { }
 

@@ -49,10 +49,10 @@ gol::OpenGLWindow::~OpenGLWindow()
     glfwTerminate();
 }
 
-gol::Game::Game()
+gol::Game::Game(const StyleLoader::StyleInfo<ImVec4>& style)
     : m_Window(DefaultWindowWidth, DefaultWindowHeight)
     , m_UnsavedWarning("Unsaved Changes")
-    , m_Control(*(StyleLoader::LoadYAML<ImVec4>(std::filesystem::path("config") / "style.yaml")))
+    , m_Control(style)
     , m_PresetSelection(std::filesystem::current_path() / "templates")
 {
     m_Editors.emplace_back(

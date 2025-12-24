@@ -46,7 +46,7 @@ bool gol::SimulationEditor::IsSaved() const
 
 bool gol::SimulationEditor::operator==(const SimulationEditor& other) const
 {
-    return m_CurrentFilePath == other.m_CurrentFilePath;
+    return m_EditorID == other.m_EditorID;
 }
 
 gol::EditorResult gol::SimulationEditor::Update(std::optional<bool> activeOverride, const SimulationControlResult& controlArgs, const PresetSelectionResult& presetArgs)
@@ -113,7 +113,7 @@ gol::EditorResult gol::SimulationEditor::Update(std::optional<bool> activeOverri
         .CurrentFilePath = m_CurrentFilePath,
         .State = m_State,
         .Active = (activeOverride && *activeOverride) || displayResult.Selected,
-		.Closing = displayResult.Closing,
+		.Closing = displayResult.Closing || controlArgs.Action == ActionVariant { EditorAction::Close },
         .SelectionActive = m_SelectionManager.CanDrawGrid(),
 		.UndosAvailable = m_VersionManager.UndosAvailable(),
 		.RedosAvailable = m_VersionManager.RedosAvailable(),
@@ -353,7 +353,14 @@ gol::SimulationState gol::SimulationEditor::UpdateState(const SimulationControlR
             return result.State;
         case UpdateFile: [[fallthrough]];
         case Save:
-            if (!m_SelectionManager.Save(m_Grid, *result.FilePath))
+            if (m_SelectionManager.Save(m_Grid, *result.FilePath))
+            {
+                if (m_CurrentFilePath.empty())
+                    m_CurrentFilePath = *result.FilePath;
+                if (*action == UpdateFile)
+                    m_VersionManager.Save();
+            }
+            else
             {
                 m_FileErrorWindow.Active = true;
                 m_FileErrorWindow.Message = std::format(
@@ -361,16 +368,12 @@ gol::SimulationState gol::SimulationEditor::UpdateState(const SimulationControlR
                     , result.FilePath->string()
                 );
             }
-            else
-            {
-                if (m_CurrentFilePath.empty())
-                    m_CurrentFilePath = *result.FilePath;
-                m_VersionManager.Save();
-            }
             return result.State;
         case Load:
             LoadFile(result);
             m_VersionManager.Save();
+            return result.State;
+        case Close:
             return result.State;
         }
 	}
