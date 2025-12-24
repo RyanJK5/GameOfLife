@@ -178,7 +178,7 @@ gol::SimulationState gol::SimulationEditor::PauseUpdate(const GraphicsHandlerArg
 gol::SimulationEditor::DisplayResult gol::SimulationEditor::DisplaySimulation(bool grabFocus)
 {
     auto label = std::format("{}{}###Simulation{}",
-        m_CurrentFilePath.empty() ? "(untitled)" : m_CurrentFilePath.string().c_str(),
+        m_CurrentFilePath.empty() ? "(untitled)" : m_CurrentFilePath.filename().string().c_str(),
         (!m_CurrentFilePath.empty() && !m_VersionManager.IsSaved()) ? "*" : "",
         m_EditorID
     );
