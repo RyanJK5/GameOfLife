@@ -5,6 +5,13 @@
 #include <string>
 #include <span>
 
+gol::KeyShortcut::KeyShortcut(ImGuiKeyChord shortcut, bool onRelease, bool allowRepeats)
+	: m_Shortcut(shortcut)
+	, m_OnRelease(onRelease)
+	, m_AllowRepeats(allowRepeats)
+	, m_Down(false)
+{ }
+
 std::string gol::KeyShortcut::StringRepresentation(std::span<const KeyShortcut> shortcuts)
 {
 	auto tooltip = std::string {};
@@ -22,7 +29,7 @@ std::string gol::KeyShortcut::StringRepresentation(std::span<const KeyShortcut> 
 
 bool gol::KeyShortcut::Active()
 {
-	bool keyCombo = ImGui::IsKeyChordPressed(m_Shortcut);
+	bool keyCombo = ImGui::IsKeyChordPressed(m_Shortcut, m_AllowRepeats ? ImGuiInputFlags_Repeat : ImGuiInputFlags_None);
 	bool result = (!m_OnRelease && keyCombo) || (m_Down && !keyCombo);
 
 	if (keyCombo)

@@ -56,7 +56,7 @@ gol::Game::Game(const StyleLoader::StyleInfo<ImVec4>& style)
     , m_PresetSelection(std::filesystem::current_path() / "templates")
 {
     m_Editors.emplace_back(
-        0u,
+        m_EditorCounter++,
         std::filesystem::path { },
         Size2 { DefaultWindowWidth, DefaultWindowHeight },
         Size2 { DefaultGridWidth, DefaultGridHeight }
@@ -144,7 +144,9 @@ void gol::Game::UpdateEditors(SimulationControlResult& controlResult, const Pres
             m_LastActive = i;
         }
         if (result.Closing && !result.HasUnsavedChanges)
+        {
             m_Editors.erase(m_Editors.begin() + i--);
+        }
         else if (result.Closing)
         {
             m_UnsavedWarning.Active = true;
@@ -173,8 +175,11 @@ void gol::Game::InitImGUI(const std::filesystem::path& stylePath)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+#ifdef _DEBUG
     io.ConfigDebugHighlightIdConflicts = true;
-
+#else
+    io.ConfigDebugHighlightIdConflicts = false;
+#endif
     io.IniFilename = nullptr;
 
     auto path = std::filesystem::path("resources") / "font" / "arial.ttf";
@@ -313,10 +318,10 @@ bool gol::Game::CheckForNewEditors(const SimulationControlResult& controlResult)
         return false;
 
     m_Editors.emplace_back(
-        static_cast<uint32_t>(m_Editors.size()),
+        m_EditorCounter++,
         *controlResult.FilePath,
-        Size2{ DefaultWindowWidth, DefaultWindowHeight },
-        Size2{ DefaultGridWidth, DefaultGridHeight }
+        Size2 { DefaultWindowWidth, DefaultWindowHeight },
+        Size2 { DefaultGridWidth, DefaultGridHeight }
     );
 
     CreateEditorDockspace();
@@ -335,7 +340,7 @@ void gol::Game::CreateEditorDockspace()
     for (size_t i = 0; i < m_Editors.size(); i++)
     {
         ImGui::DockBuilderDockWindow(
-            std::format("###Simulation{}", i).c_str(),
+            std::format("###Simulation{}", m_Editors[i].EditorID()).c_str(),
             editorDockspaceID
         );
     }

@@ -185,7 +185,7 @@ gol::SimulationEditor::DisplayResult gol::SimulationEditor::DisplaySimulation(bo
         m_EditorID
     );
     
-    bool stayOpen;
+    bool stayOpen = true;
     auto windowClass = ImGuiWindowClass{};
     windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoCloseButton;
     ImGui::SetNextWindowClass(&windowClass);

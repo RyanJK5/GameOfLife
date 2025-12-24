@@ -32,6 +32,7 @@ namespace gol
 
 		EditorResult Update(std::optional<bool> activeOverride, const SimulationControlResult& controlArgs, const PresetSelectionResult& presetArgs);
 		
+		uint32_t EditorID() const { return m_EditorID; }
 		bool IsSaved() const;
 		bool operator==(const SimulationEditor& other) const;
 	private:

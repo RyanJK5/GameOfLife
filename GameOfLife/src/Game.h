@@ -78,6 +78,7 @@ namespace gol
 		OpenGLWindow m_Window;
 
 		std::vector<SimulationEditor> m_Editors;
+		uint32_t m_EditorCounter = 0;
 		
 		WarnWindow m_UnsavedWarning;
 		SimulationEditor* m_Unsaved = nullptr;

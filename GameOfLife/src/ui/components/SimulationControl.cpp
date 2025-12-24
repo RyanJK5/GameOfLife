@@ -15,10 +15,10 @@ gol::ButtonlessShortcuts::ButtonlessShortcuts(
     const std::vector<ImGuiKeyChord>& close
 )
     : Shortcuts({
-        { SelectionAction::NudgeLeft,  left  | KeyShortcut::MapChordsToVector },
-        { SelectionAction::NudgeRight, right | KeyShortcut::MapChordsToVector },
-        { SelectionAction::NudgeUp,    up    | KeyShortcut::MapChordsToVector },
-        { SelectionAction::NudgeDown,  down  | KeyShortcut::MapChordsToVector },
+        { SelectionAction::NudgeLeft,  left  | KeyShortcut::RepeatableMapChordsToVector },
+        { SelectionAction::NudgeRight, right | KeyShortcut::RepeatableMapChordsToVector },
+        { SelectionAction::NudgeUp,    up    | KeyShortcut::RepeatableMapChordsToVector },
+        { SelectionAction::NudgeDown,  down  | KeyShortcut::RepeatableMapChordsToVector },
 		{ EditorAction::Close,         close | KeyShortcut::MapChordsToVector }
     })
 { }
