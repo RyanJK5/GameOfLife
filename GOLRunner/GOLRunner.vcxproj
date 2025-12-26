@@ -52,6 +52,7 @@
     <ProjectGuid>{26a04a9e-9f4a-405c-bf57-930afbfac7b2}</ProjectGuid>
     <RootNamespace>GOLRunner</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>GOLExecutable</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
