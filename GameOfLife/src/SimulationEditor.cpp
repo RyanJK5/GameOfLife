@@ -493,21 +493,40 @@ void gol::SimulationEditor::FillCells()
 {
     const auto mousePos = Vec2F { ImGui::GetMousePos() };
     const auto delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-    
+
     const auto realDelta = Vec2F { delta.x - m_LeftDeltaLast.X, delta.y - m_LeftDeltaLast.Y };
-    const auto lastPos = mousePos - realDelta;
-    const auto deltaStep = realDelta.Normalized();
+    const auto lastPos = Vec2F { mousePos.X - realDelta.X, mousePos.Y - realDelta.Y };
 
-    for (float i = 0; i <= realDelta.Magnitude(); i++)
+    auto currentGridPos = ConvertToGridPos(mousePos);
+    auto lastGridPos = ConvertToGridPos(lastPos);
+
+    if (!currentGridPos || !lastGridPos)
+        return;
+
+    auto gridDelta = Vec2 { currentGridPos->X - lastGridPos->X, currentGridPos->Y - lastGridPos->Y };
+    int32_t steps = std::max(std::abs(gridDelta.X), std::abs(gridDelta.Y));
+
+    if (steps == 0)
     {
-        auto pos = Vec2F { lastPos.X + i * deltaStep.X, lastPos.Y + i * deltaStep.Y };
-        auto gridPos = ConvertToGridPos(pos);
-        if (!gridPos)
-			break;
+        if (*m_Grid.Get(currentGridPos->X, currentGridPos->Y) != (m_EditorMode == EditorMode::Insert))
+            m_VersionManager.AddPaintChange(*currentGridPos);
+        m_Grid.Set(currentGridPos->X, currentGridPos->Y, m_EditorMode == EditorMode::Insert);
+        return;
+    }
 
-        if (*m_Grid.Get(gridPos->X, gridPos->Y) != (m_EditorMode == EditorMode::Insert))
-            m_VersionManager.AddPaintChange(*gridPos);
-		m_Grid.Set(gridPos->X, gridPos->Y, m_EditorMode == EditorMode::Insert);
+    for (int32_t i = 0; i <= steps; i++)
+    {
+        Vec2 gridPos = {
+            lastGridPos->X + (gridDelta.X * i) / steps,
+            lastGridPos->Y + (gridDelta.Y * i) / steps
+        };
+
+        if (!m_Grid.InBounds(gridPos))
+            continue;
+
+        if (*m_Grid.Get(gridPos.X, gridPos.Y) != (m_EditorMode == EditorMode::Insert))
+            m_VersionManager.AddPaintChange(gridPos);
+        m_Grid.Set(gridPos.X, gridPos.Y, m_EditorMode == EditorMode::Insert);
     }
 }
 
