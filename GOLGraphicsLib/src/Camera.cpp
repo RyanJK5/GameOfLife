@@ -6,7 +6,7 @@
 #include "Camera.h"
 #include "Graphics2D.h"
 
-void gol::Camera::ZoomBy(Vec2F screenPos, const RectF& viewBounds, float zoom)
+void gol::GraphicsCamera::ZoomBy(Vec2F screenPos, const RectF& viewBounds, float zoom)
 {
     Zoom *= 1.f + zoom;
     if (Zoom < MaxZoom)
@@ -14,12 +14,12 @@ void gol::Camera::ZoomBy(Vec2F screenPos, const RectF& viewBounds, float zoom)
     Zoom = std::clamp(Zoom, MinZoom, MaxZoom);
 }
 
-void gol::Camera::Translate(glm::vec2 delta)
+void gol::GraphicsCamera::Translate(glm::vec2 delta)
 {
     Center -= delta / Zoom;
 }
 
-glm::vec2 gol::Camera::ScreenToWorldPos(Vec2F pos, const Rect& viewBounds) const
+glm::vec2 gol::GraphicsCamera::ScreenToWorldPos(Vec2F pos, const Rect& viewBounds) const
 {
     auto vec = glm::vec2 { pos.X - viewBounds.X, pos.Y - viewBounds.Y };
     vec -= glm::vec2 { viewBounds.Width / 2, viewBounds.Height / 2 };
@@ -28,7 +28,7 @@ glm::vec2 gol::Camera::ScreenToWorldPos(Vec2F pos, const Rect& viewBounds) const
     return vec;
 }
 
-glm::vec2 gol::Camera::WorldToScreenPos(Vec2F pos, const Rect& viewBounds, Size2F worldSize) const
+glm::vec2 gol::GraphicsCamera::WorldToScreenPos(Vec2F pos, const Rect& viewBounds, Size2F worldSize) const
 {
     auto vec = glm::vec2(pos);
     vec.x -= Center.x;
@@ -38,7 +38,7 @@ glm::vec2 gol::Camera::WorldToScreenPos(Vec2F pos, const Rect& viewBounds, Size2
     return vec;
 }
 
-glm::mat4 gol::Camera::OrthographicProjection(Size2 viewSize) const
+glm::mat4 gol::GraphicsCamera::OrthographicProjection(Size2 viewSize) const
 {
 	return glm::ortho(
 		Center.x - (viewSize.Width / 2.f)  / Zoom,

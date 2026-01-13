@@ -118,17 +118,15 @@ uint32_t gol::ShaderManager::CompileShader(uint32_t type, std::string_view sourc
 
 std::optional<gol::ShaderManager::IDPair> gol::ShaderManager::ParseShader(const std::filesystem::path& shaderFilePath) const
 {
-    std::optional<uint32_t> id1{};
-    std::optional<uint32_t> id2{};
-
     std::ifstream stream(shaderFilePath);
     if (!stream.is_open())
+    {
         return std::nullopt;
+    }
 
     std::string line;
     std::string shader;
 
-    std::optional<uint32_t> type{};
     auto setType = [] (const std::string& line, std::optional<uint32_t>& type)
     {
         size_t spaceIndex = line.find(' ');
@@ -142,7 +140,10 @@ std::optional<gol::ShaderManager::IDPair> gol::ShaderManager::ParseShader(const 
             type = std::nullopt;
     };
 
-    while (std::getline(stream, line))
+    std::optional<uint32_t> id1{};
+    std::optional<uint32_t> id2{};
+    std::optional<uint32_t> type{};
+    while (std::getline(stream, line, '\n'))
     {
         if (line.find("#shader") == std::string::npos)
         {

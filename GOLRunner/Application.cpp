@@ -15,6 +15,5 @@ int main()
     catch (const std::exception& e)
     {
         std::cerr << "Fatal Error:\n" << e.what() << '\n';
-        throw;
     }
 }

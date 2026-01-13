@@ -1,18 +1,20 @@
 #include <algorithm>
 #include <cstdint>
-#include <functional>
 #include <limits>
+#include <memory>
 #include <optional>
 #include <set>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "GameGrid.h"
 #include "Graphics2D.h"
+#include "LifeHashSet.h"
+#include "LifeAlgorithm.h"
 
 gol::GameGrid::GameGrid(int32_t width, int32_t height)
 	: m_Width(width), m_Height(height)
+	, m_Algorithm(SparseLife)
 { }
 
 gol::GameGrid::GameGrid(Size2 size)
@@ -79,34 +81,9 @@ const gol::LifeHashSet& gol::GameGrid::Data() const
 
 void gol::GameGrid::Update()
 {
-	constexpr int32_t dx[] = { -1,-1,-1,0,0,1,1,1 };
-	constexpr int32_t dy[] = { -1,0,1,-1,1,-1,0,1 };
-
-	ankerl::unordered_dense::map<Vec2, uint8_t> neighborCount;
-	neighborCount.reserve(m_Data.size() * 8);
-	for (auto&& pos : m_Data)
-	{
-		for (int32_t i = 0; i < 8; ++i)
-		{
-			int32_t x = pos.X + dx[i];
-			int32_t y = pos.Y + dy[i];
-			if (!InBounds(x, y))
-				continue;
-			
-			++neighborCount[{x, y}];
-		}
-	}
-
-	LifeHashSet newSet {};
-	newSet.reserve(neighborCount.size());
-	for (auto&& [pos, neighbors] : neighborCount)
-	{
-		if (neighbors == 3 || (neighbors == 2 && m_Data.contains(pos)))
-			newSet.insert(pos);
-	}
-	m_Population = newSet.size();
+	m_Data = m_Algorithm(m_Data, {0, 0, m_Width, m_Height});
+	m_Population = m_Data.size();
 	m_Generation++;
-	m_Data = std::move(newSet);
 }
 
 bool gol::GameGrid::Toggle(int32_t x, int32_t y)

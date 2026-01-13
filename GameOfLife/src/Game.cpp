@@ -40,8 +40,9 @@ gol::OpenGLWindow::OpenGLWindow(int32_t width, int32_t height)
     GL_DEBUG(glLineWidth(4));
     GL_DEBUG(glfwSwapInterval(1));
 
-    if (glewInit() != GLEW_OK)
-        throw GLException("Failed to initialize glew");
+    GL_DEBUG(auto result = glewInit());
+    if (result != GLEW_OK)
+        throw GLException(reinterpret_cast<const char*>(glewGetErrorString(result)));
 }
 
 gol::OpenGLWindow::~OpenGLWindow() 

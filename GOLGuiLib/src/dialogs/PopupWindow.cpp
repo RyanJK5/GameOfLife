@@ -18,7 +18,7 @@ gol::PopupWindowState gol::PopupWindow::Update()
 	ImGui::BeginPopupModal(m_Title.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
 
 	ImGui::PushStyleVarY(ImGuiStyleVar_ItemSpacing, 30.f);
-	ImGui::Text(Message.c_str());
+	ImGui::Text("%s", Message.c_str());
 	ImGui::PopStyleVar();
 
 	auto result = ShowButtons();

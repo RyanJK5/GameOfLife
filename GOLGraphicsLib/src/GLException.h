@@ -7,11 +7,10 @@
 
 namespace gol
 {
-	class GLException : public std::exception
+	class GLException : public std::runtime_error
 	{
 	public:
-		GLException() : std::exception() { }
-		GLException(std::string_view str) : std::exception(std::move(str).data()) {}
+		GLException(std::string_view str) : std::runtime_error(str.data()) {}
 	};
 }
 

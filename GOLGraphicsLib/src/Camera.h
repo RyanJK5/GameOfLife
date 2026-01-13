@@ -7,7 +7,7 @@
 
 namespace gol
 {
-	class Camera
+	class GraphicsCamera
 	{
 	public:
 		static constexpr float MinZoom = 0.0001f;
@@ -16,8 +16,8 @@ namespace gol
 		float Zoom = 1.f;
 		glm::vec2 Center = {};
 	public:
-		Camera() = default;
-		Camera(float zoom, glm::vec2 center) : Zoom(zoom), Center(center) { }
+		GraphicsCamera() = default;
+		GraphicsCamera(float zoom, glm::vec2 center) : Zoom(zoom), Center(center) { }
 	public:
 		void ZoomBy(Vec2F screenPos, const RectF& viewBounds, float zoom);
 		void Translate(glm::vec2 translation);

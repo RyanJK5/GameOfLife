@@ -220,8 +220,8 @@ gol::SimulationEditor::DisplayResult gol::SimulationEditor::DisplaySimulation(bo
 
     splitter.SetCurrentChannel(ImGui::GetWindowDrawList(), 1);
     ImGui::SetCursorPos(ImGui::GetWindowContentRegionMin());
-    ImGui::Text(std::format("Generation: {}", m_Grid.Generation()).c_str());
-    ImGui::Text(std::format("Population: {}", m_Grid.Population() + m_SelectionManager.SelectedPopulation()).c_str());
+    ImGui::Text("%s", std::format("Generation: {}", m_Grid.Generation()).c_str());
+    ImGui::Text("%s", std::format("Population: {}", m_Grid.Population() + m_SelectionManager.SelectedPopulation()).c_str());
 
     if (m_SelectionManager.CanDrawSelection())
     {
@@ -233,7 +233,7 @@ gol::SimulationEditor::DisplayResult gol::SimulationEditor::DisplaySimulation(bo
             text += std::format(" X ({}, {})", sentinel.X, sentinel.Y);
         }
         ImGui::SetCursorPosY(ImGui::GetContentRegionMax().y - ImGui::CalcTextSize(text.c_str()).y);
-        ImGui::Text(text.c_str());
+        ImGui::Text("%s", text.c_str());
     }
 
     splitter.Merge(ImGui::GetWindowDrawList());

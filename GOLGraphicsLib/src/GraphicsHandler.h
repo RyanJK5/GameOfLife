@@ -40,7 +40,7 @@ namespace gol
 	class GraphicsHandler
 	{
 	public:
-		Camera Camera;
+		GraphicsCamera Camera;
 	public:
 		GraphicsHandler(
 			const std::filesystem::path& shaderDirectory, 

@@ -66,10 +66,19 @@ namespace gol::RLEEncoder
 		constexpr StorageType largestValue = std::numeric_limits<StorageType>::max() >> (2 * sizeof(StorageType));
 
 		auto encoded = std::vector<StorageType> {};
-		encoded.append_range(FormatDimension<StorageType>(std::abs(offset.X)));
-		encoded.append_range(FormatDimension<StorageType>(std::abs(offset.Y)));
-		encoded.append_range(FormatDimension<StorageType>(region.Width));
-		encoded.append_range(FormatDimension<StorageType>(region.Height));
+			
+		const auto offsetXDim = FormatDimension<StorageType>(std::abs(offset.X));
+		encoded.insert(encoded.end(), offsetXDim.begin(), offsetXDim.end());
+			
+		const auto offsetYDim = FormatDimension<StorageType>(std::abs(offset.Y));
+		encoded.insert(encoded.end(), offsetYDim.begin(), offsetYDim.end());
+			
+		const auto widthDim = FormatDimension<StorageType>(region.Width);
+		encoded.insert(encoded.end(), widthDim.begin(), widthDim.end());
+			
+		const auto heightDim = FormatDimension<StorageType>(region.Height);
+		encoded.insert(encoded.end(), heightDim.begin(), heightDim.end());
+			
 		encoded.push_back(FormatNumber<StorageType>('0'));
 		encoded.push_back(FormatNumber<StorageType>(offset.X >= 0 ? '0' : '1'));
 		encoded.push_back(FormatNumber<StorageType>(offset.Y >= 0 ? '0' : '1'));

@@ -68,7 +68,7 @@ namespace gol
 				const auto& shortcuts = m_Shortcuts.at(Action(state));
 				if (!shortcuts.empty())
 					tooltip += ": " + KeyShortcut::StringRepresentation(m_Shortcuts.at(Action(state)));
-				ImGui::SetTooltip(tooltip.c_str());
+				ImGui::SetTooltip("%s", tooltip.c_str());
 			}
 
 			return result;

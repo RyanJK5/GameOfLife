@@ -53,12 +53,11 @@ namespace gol::StyleLoader
 		std::string Description;
 	};
 
-	class StyleLoaderException : public std::exception
+	class StyleLoaderException : public std::runtime_error
 	{
 	public:
-		StyleLoaderException() : std::exception() {}
-		StyleLoaderException(std::string_view str) : std::exception(std::move(str).data()) {}
-		StyleLoaderException(const YAMLError& err) : std::exception(err.Description.data()) {}
+		StyleLoaderException(std::string_view str) : std::runtime_error(std::move(str).data()) {}
+		StyleLoaderException(const YAMLError& err) : std::runtime_error(err.Description.data()) {}
 	};
 
 	template <Vector4 Vec>

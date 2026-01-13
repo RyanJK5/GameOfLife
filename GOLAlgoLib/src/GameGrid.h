@@ -5,9 +5,11 @@
 #include <vector>
 #include <unordered_dense.h>
 #include <set>
+#include <memory>
 #include <optional>
 
 #include "Graphics2D.h"
+#include "LifeAlgorithm.h"
 #include "LifeHashSet.h"
 
 namespace gol
@@ -64,6 +66,7 @@ namespace gol
 		const std::set<Vec2>& SortedData() const;
 		const LifeHashSet& Data() const;
 	private:
+		LifeAlgorithm m_Algorithm;
 		LifeHashSet m_Data;
 
 		mutable std::set<Vec2> m_SortedData;
